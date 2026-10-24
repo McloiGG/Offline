@@ -33,7 +33,7 @@
 
 #hands { position: absolute; left: 50%; bottom: -26px; width: min(56vw, 700px); transform: translateX(-50%); pointer-events: none; transition: transform .25s; }
 #hands svg { width: 100%; height: auto; display: block; }
-#hands.low { transform: translate(-50%, 30%); }
+#hands.low { transform: translate(-50%, 80%); }
 
 #toasts { position: absolute; top: 84px; right: 14px; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; pointer-events: none; }
 .toast { max-width: 340px; background: rgba(244, 240, 229, .96); color: var(--ink); border-left: 6px solid var(--blue); border-radius: 8px; padding: 9px 14px;
@@ -41,6 +41,8 @@
 .toast.bad { border-color: var(--red); } .toast.good { border-color: var(--green); } .toast.warn { border-color: var(--amber); }
 @keyframes slidein { from { opacity: 0; transform: translateX(30px); } }
 
+#tip { position: fixed; left: 0; top: 0; z-index: 25; pointer-events: none; white-space: nowrap; background: rgba(20, 24, 31, .9); color: var(--paper);
+  font: 600 14px/1 "Trebuchet MS", Arial, sans-serif; padding: 7px 11px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
 #flash { position: absolute; inset: 0; background: radial-gradient(transparent 38%, rgba(217, 71, 58, .6)); opacity: 0; transition: opacity .3s; pointer-events: none; }
 #flash.on { opacity: 1; transition: none; }
 

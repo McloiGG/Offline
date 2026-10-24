@@ -38,6 +38,7 @@
       while (toasts.children.length > 4) toasts.removeChild(toasts.firstChild);
       setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, ms || 3400);
     },
+    clearToasts() { toasts.innerHTML = ''; },
     flash() {
       flashEl.classList.add('on');
       setTimeout(() => flashEl.classList.remove('on'), 140);

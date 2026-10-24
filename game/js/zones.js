@@ -71,6 +71,25 @@
 
   // ---- feedback for every click / hover / drag ----
   P.onClick = () => { X.click(); HD.flash('press', 220); };
-  P.onHover = name => HD.rest(name ? 'hover' : 'idle');
-  P.onDrag = on => { HD.rest(on ? 'pull-cable' : 'idle'); if (on) X.blip(); };
+  let dragging = false;
+  P.onDrag = on => { dragging = on; if (on) tip.hidden = true; HD.rest(on ? 'pull-cable' : 'idle'); if (on) X.blip(); };
+
+  // ---- a name tag on whatever the pointer is over, so the parts are discoverable ----
+  const TAGS = { tray: 'Paper tray', ink: 'Ink panel', screen: 'Touchscreen', vent: 'Fans', port: 'Power inlet', plug: 'Power plug', page: 'The page' };
+  const tip = document.createElement('div');
+  tip.id = 'tip'; tip.hidden = true; document.body.appendChild(tip);
+  const dom = C.scene.renderer.domElement;
+  let tipName = null;
+  const showTip = e => {
+    if (!tipName || dragging) { tip.hidden = true; return; }
+    const here = d[tipName] && d[tipName].view === C.state.currentView;
+    tip.textContent = TAGS[tipName] + (here ? '' : '  ·  click to zoom in');
+    tip.style.transform = 'translate(' + (e.clientX + 16) + 'px,' + (e.clientY + 20) + 'px)';
+    tip.hidden = false;
+  };
+  P.onHover = name => { HD.rest(name ? 'hover' : 'idle'); tipName = name; };
+  dom.addEventListener('pointermove', showTip);           // registered after picking.js, so tipName is already current
+  dom.addEventListener('pointerleave', () => { tipName = null; tip.hidden = true; });
+  dom.addEventListener('pointerdown', () => { tip.hidden = true; });
+  C.office.updaters.push(() => { if (!P.enabled || O.paused) { tip.hidden = true; tipName = null; } });
 })(window.Offline);

@@ -22,8 +22,14 @@
     endEl.hidden = true; pageView.hidden = true; rating.hidden = true; black.hidden = true; black.innerHTML = '';
   };
 
+  // The page that comes out is blank: the demo prints a CMYK sample on one pooled sheet's top face, so give every pooled sheet plain paper.
+  const blankSheets = () => C.scene.stack.children.forEach(m => {
+    if (m.isMesh && Array.isArray(m.material) && m.material.length === 6) m.material[2] = C.mat.paper;
+  });
+
   G.on('print', () => {
     C.ui.views.goTo('print');
+    blankSheets();
     C.anim.printing.start();                           // the sound and a single sheet
     later(1600, () => C.anim.printing.stop());
   });
@@ -34,8 +40,9 @@
   });
   G.on('pageOpen', () => {
     pageHit.visible = false;
-    H.toast('', '', 1);
+    H.clearToasts();
     endEl.hidden = false; pageView.hidden = false; rating.hidden = true;
+    O.hands.lower(true);
     X.chime(); CW.expr('nod', 6000); CW.say('perfect.', 6000);
   });
   G.on('rating', d => {
