@@ -1,0 +1,57 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #eef0f3;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+/* ---- heads-up display ---- */
+#hud { position: fixed; left: 16px; top: 12px; color: #2b2e33; pointer-events: none; max-width: 60vw; }
+#hud h1 { margin: 0; font-size: 18px; }
+#hud p { margin: 4px 0 0; font-size: 13px; color: #5a5f68; }
+#hud #info { margin-top: 10px; font-size: 14px; color: #003399; font-weight: 700; }
+
+/* ---- buttons ---- */
+button {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 13px;
+  border: 1px solid #b6bac2;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: #2b2e33;
+}
+button:hover { background: #f1f3f6; }
+button.on { background: #003399; color: #fff; border-color: #003399; }
+
+#bar {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: calc(100vw - 32px);
+}
+.sep { width: 1px; background: #c9cdd5; margin: 0 4px; }
+
+#states { position: fixed; right: 16px; top: 12px; display: flex; flex-direction: column; gap: 6px; }
+#states button { text-align: left; }
+
+/* ---- toast ---- */
+#plugmsg {
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  background: #003399;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  display: none;
+}
