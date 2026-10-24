@@ -15,7 +15,7 @@
 
   document.getElementById('spin').onclick = views.toggleSpin;
 
-  // Cassettes: show/hide C3 + C4 and lift the stack so the extra drawers fit underneath.
+  // Cassettes: show/hide A2 + A1 and lift the stack so the extra drawers fit underneath.
   const cassBtn = document.getElementById('cass');
   cassBtn.onclick = () => {
     const four = !extras.visible;

@@ -20,7 +20,7 @@
     zones.push(mesh);
   }
 
-  addZone('s1', 70, 14, 6,  0,     27.4, ZF + 1, { isTray: true });   // paper cassette C1
+  addZone('s1', 70, 14, 6,  0,     27.4, ZF + 1, { isTray: true });   // paper cassette A4
   addZone('s2', 30, 12, 4, -19.5,  66.6, ZF + 2);              // ink display
   addZone('s3', 33, 18, 4,  19.3, 107,   ZF + 6);              // touchscreen
   addZone('s4', 6,  24, 36, 35.5,  64,  -6);                   // right vent

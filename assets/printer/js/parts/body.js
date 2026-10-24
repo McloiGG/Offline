@@ -13,7 +13,6 @@
   rect(499, 230, 501, 415, ZF + 0.2, 1, seam);              // door A edge
   rect(501, 367, 633.7, 369, ZF + 0.2, 1, seam);            // right-bay split
   rect(369, 338, 374, 386, ZF + 0.6, 0.3, grey);            // door A handle
-  label('A', 395, 347, 2.2, 1.6, ZF + 0.75, LABEL_COLOR, 'normal');
   rect(588, 228, 598, 234, ZF + 0.15, 0.3, black2);         // USB port
   label('USB', 610, 231, 3.2, 1.4, ZF + 0.2, LABEL_COLOR, 'normal');
 
