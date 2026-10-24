@@ -21,6 +21,12 @@
   paperInput.max = MAX_PAPER;
   paperInput.oninput = () => { if (paperInput.value !== '') setPaperCount(Number(paperInput.value)); };
 
+  // Ink levels: one percent input per tank (0 still leaves a sliver of ink).
+  const inkPanel = window.Cetak.parts.inkPanel;
+  document.querySelectorAll('.ink-level').forEach((input, i) => {
+    input.oninput = () => { if (input.value !== '') inkPanel.setLevel(i, Number(input.value) / 100); };
+  });
+
   // Sound effects: one button per sound, a toggle for the looping print sound, and a volume slider.
   const audio = window.Cetak.office.audio;
   document.querySelectorAll('[data-sound]').forEach(btn => { btn.onclick = () => audio.play(btn.dataset.sound); });
@@ -33,6 +39,15 @@
   audio.onPrintingChange = on => {
     printSoundBtn.textContent = 'Printing: ' + (on ? 'on' : 'off');
     printSoundBtn.classList.toggle('on', on);
+  };
+
+  const inkBtn = document.getElementById('sound-ink');
+  inkBtn.onclick = () => audio.setInkWarning(!audio.isInkWarning());
+  audio.onInkWarningChange = on => {
+    inkBtn.textContent = 'Ink warning: ' + (on ? 'on' : 'off');
+    inkBtn.classList.toggle('on', on);
+    const level = on ? 0 : 100;
+    document.querySelectorAll('.ink-level').forEach((input, i) => { input.value = level; inkPanel.setLevel(i, level / 100); });
   };
 
   const overheatBtn = document.getElementById('sound-overheat');

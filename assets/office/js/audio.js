@@ -66,6 +66,14 @@
     src.stop(t + dur + 0.02);
   }
 
+  // The ink panel logo blinks red while a warning sound plays or the overheat fan is on.
+  let warnTimers = 0, overheatWarn = false, inkWarn = false;
+  function refreshWarning() { C.parts.inkPanel.setWarning(warnTimers > 0 || overheatWarn || inkWarn); }
+  function warnFor(ms) {
+    warnTimers++; refreshWarning();
+    setTimeout(() => { warnTimers--; refreshWarning(); }, ms);
+  }
+
   const thunk = (at, gain) => tone(150, at, 0.14, 'sine', gain, 55);
 
   const SOUNDS = {
@@ -96,6 +104,25 @@
       tone(1800, 0.4, 0.03, 'square', 0.05);
     }
   };
+
+  // Ink warning: the (loud) recording loops while on, so it is turned down.
+  const INK_FILE = 'audio/ink.mp3', INK_LEVEL = 0.35;
+  let inkEl = null;
+
+  function setInkWarning(on) {
+    if (on && !inkEl && typeof Audio !== 'undefined') {
+      inkEl = new Audio(INK_FILE);
+      inkEl.loop = true;
+      inkEl.volume = volume * INK_LEVEL;
+      inkEl.play().catch(() => {});
+    } else if (!on && inkEl) {
+      inkEl.pause();
+      inkEl = null;
+    }
+    inkWarn = on;
+    refreshWarning();
+    api.onInkWarningChange(on);
+  }
 
   // ---- printing: a repeating carriage sweep with a steady motor hum underneath ----
   let printing = null;           // { hum, humGain, timer }
@@ -175,6 +202,7 @@
     });
     state.timer = setInterval(() => tickOverheat(state), 30);
     state.cur.play().catch(() => {});
+    overheatWarn = true; refreshWarning();
     api.onOverheatChange(true);
   }
 
@@ -210,22 +238,29 @@
     state.cur.volume = volume;
     if (state.cur.currentTime < LOOP_TO) state.cur.currentTime = LOOP_TO;
     state.cur.play().catch(() => {});
+    overheatWarn = false; refreshWarning();
     api.onOverheatChange(false);
   }
 
   function finishOverheat(state) {
     clearInterval(state.timer);
     if (overheat === state) overheat = null;
+    overheatWarn = false; refreshWarning();
     api.onOverheatChange(false);
   }
 
   const api = C.office.audio = {
     onPrintingChange() {},                          // replaced by the debug panel to update its button
     onOverheatChange() {},
+    onInkWarningChange() {},
+    setInkWarning,
+    isInkWarning: () => inkWarn,
     startOverheat,
     stopOverheat,
     isOverheating: () => !!overheat && !overheat.stopping,
-    play(name) { if (SOUNDS[name] && ensure()) SOUNDS[name](); },
+    play(name) {
+      if (SOUNDS[name] && ensure()) { SOUNDS[name](); if (name === 'warning') warnFor(1100); }
+    },
     startPrinting,
     stopPrinting,
     isPrinting: () => !!printing,
@@ -233,6 +268,7 @@
       volume = Math.max(0, Math.min(1, v));
       if (master) master.gain.value = volume;
       if (printing && printing.el) printing.el.volume = volume;
+      if (inkEl) inkEl.volume = volume * INK_LEVEL;
       if (overheat && !overheat.next) overheat.cur.volume = volume;
     }
   };
@@ -245,6 +281,8 @@
     C.office.audio.play(open ? 'trayOpen' : 'trayClose');
     return open;
   };
+
+  C.office.updaters.push(t => C.parts.inkPanel.update(t));
 
   // Turning the airflow (ventilation) on is the overheating state, so it drives the fan sound.
   const airflow = C.anim.airflow;

@@ -42,9 +42,26 @@
       <input id="paper-count" type="number" min="0" max="20" step="1" value="20">
     </label>
 
+    <h3>Ink levels (%)</h3>
+    <div class="grid">
+      <label class="field">BK
+        <input class="ink-level" type="number" min="0" max="100" step="1" value="85">
+      </label>
+      <label class="field">Y
+        <input class="ink-level" type="number" min="0" max="100" step="1" value="70">
+      </label>
+      <label class="field">M
+        <input class="ink-level" type="number" min="0" max="100" step="1" value="55">
+      </label>
+      <label class="field">C
+        <input class="ink-level" type="number" min="0" max="100" step="1" value="90">
+      </label>
+    </div>
+
     <h3>Sound effects</h3>
     <div class="list">
       <button data-sound="warning">Warning</button>
+      <button id="sound-ink">Ink warning: off</button>
       <button data-sound="complete">Completed</button>
       <button data-sound="trayOpen">Paper tray opening</button>
       <button data-sound="trayClose">Paper tray closing</button>
