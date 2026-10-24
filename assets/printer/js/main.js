@@ -9,17 +9,22 @@
 
   C.ui.views.resetHome();
 
+  let fanPower = 1;               // 1 = full speed, 0 = stopped
+
   const clock = new THREE.Clock();
 
   function frame() {
     requestAnimationFrame(frame);
     const dt = Math.min(clock.getDelta(), MAX_DT);
 
-    fans.forEach(blades => { blades.rotation.z -= dt * FAN_SPEED; });
+    // The fans spin down when the printer is unplugged and spin back up when it has power again.
+    fanPower += ((C.parts.power.isPlugged() ? 1 : 0) - fanPower) * (1 - Math.exp(-(C.parts.power.isPlugged() ? 3 : 1.2) * dt));
+    if (fanPower < 0.002) fanPower = 0;
+    fans.forEach(blades => { blades.rotation.z -= dt * FAN_SPEED * fanPower; });
     C.parts.cassettes.update(dt);
     C.anim.printing.update(dt);
     C.anim.airflow.update(dt);
-    C.parts.power.update();
+    C.parts.power.update(dt);
 
     C.ui.views.update();
     controls.update();

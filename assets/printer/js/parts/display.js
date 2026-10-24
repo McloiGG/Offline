@@ -94,5 +94,8 @@
   face.position.z = 0.92;
   group.add(face);
 
+  // The texture is multiplied by the material colour, so a near-black colour switches the screen off.
+  group.setPower = on => face.material.color.setHex(on ? 0xffffff : 0x050506);
+
   C.parts.display = group;
 })(window.Cetak);

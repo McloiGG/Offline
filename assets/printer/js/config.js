@@ -19,11 +19,11 @@
       black: 0x222222
     },
 
-    // Wall + socket the power cord runs to (State 5).
+    // Wall + socket the power cord runs to (State 5). The wall plug is the one you pull out.
     WALL: { z: -95, socketX: 42, socketY: 18 },
 
     // Power port / plug on the back of the printer.
-    PLUG: { y: 13, inZ: -D / 2 - 0.9, outZ: -D / 2 - 14 },
+    PLUG: { y: 13, inZ: -D / 2 - 0.9 },
 
     // Printing animation timings (seconds).
     PRINT: { pool: 6, slide: 0.9, drop: 0.4, spawnEvery: 1.3 },
@@ -41,7 +41,7 @@
       s2:      { p: [-20, 70, 72],   t: [-19.6, 66.6, 33], info: 'State 2: Ink low. Check the ink cartridges.' },
       s3:      { p: [30, 118, 80],   t: [19.3, 107, 34],  info: 'State 3: Offline. Find the wifi icon on the display.' },
       s4:      { p: [108, 70, -6],   t: [35, 64, -6],     info: 'State 4: Overheating. Check the ventilation fans.' },
-      s5:      { p: [18, 24, -78],   t: [10, 14, -45],    info: 'State 5: Plug in, plug out. Click the plug.' }
+      s5:      { p: [58, 46, -58],   t: [42, 18, -90],    info: 'State 5: Plug in, plug out. Hold the plug and drag it out of the socket; drag it back in to plug it in.' }
     }
   };
 
