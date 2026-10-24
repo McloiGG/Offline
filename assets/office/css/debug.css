@@ -44,6 +44,7 @@
 #debug-panel .list { display: flex; flex-direction: column; gap: 6px; }
 #debug-panel button { text-align: left; }
 #debug-panel .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #2b2e33; }
+#debug-panel input[type="range"] { width: 100%; }
 #debug-panel input[type="number"] {
   box-sizing: border-box;
   width: 100%;

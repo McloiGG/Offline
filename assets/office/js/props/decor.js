@@ -114,13 +114,17 @@
     const h = height || 70;
     cyl(14, 11, 26, std(0xc9c2b4, 0.7), 0, 13, 0, g, 20);
     cyl(12.5, 12.5, 1.5, std(0x4a3a2c, 1), 0, 26, 0, g, 20);
+    // Same leaves as before, but each one pivots around its own base (a group at the soil), so tilting it
+    // can no longer lift the base off the soil and leave the leaf floating.
     const leaf = std(0x3f8a4d, 0.8);
     for (let i = 0; i < 9; i++) {
       const a = (i / 9) * Math.PI * 2;
       const lh = h * (0.55 + (i % 3) * 0.2);
-      const l = sphere(1, leaf, Math.cos(a) * 9, 26 + lh / 2, Math.sin(a) * 9, g);
-      l.scale.set(6.5, lh / 2, 3);
-      l.rotation.set(Math.sin(a) * 0.35, a, -Math.cos(a) * 0.35);
+      const base = new THREE.Group();
+      base.position.set(Math.cos(a) * 9, 25, Math.sin(a) * 9);      // slightly sunk into the soil
+      base.rotation.set(Math.sin(a) * 0.35, a, -Math.cos(a) * 0.35);
+      g.add(base);
+      sphere(1, leaf, 0, lh / 2, 0, base).scale.set(6.5, lh / 2, 3);
     }
     return g;
   }

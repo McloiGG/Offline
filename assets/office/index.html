@@ -42,6 +42,19 @@
       <input id="paper-count" type="number" min="0" max="20" step="1" value="20">
     </label>
 
+    <h3>Sound effects</h3>
+    <div class="list">
+      <button data-sound="warning">Warning</button>
+      <button data-sound="complete">Completed</button>
+      <button data-sound="trayOpen">Paper tray opening</button>
+      <button data-sound="trayClose">Paper tray closing</button>
+      <button id="sound-print">Printing: off</button>
+      <button id="sound-overheat">Overheat fan: off</button>
+      <label class="field">Volume
+        <input id="sound-volume" type="range" min="0" max="1" step="0.05" value="0.6">
+      </label>
+    </div>
+
     <h3>Toggles</h3>
     <div class="list">
       <button id="spin">Auto-rotate: off</button>
@@ -98,6 +111,7 @@
 
 <!-- The printer's render loop must come after the office loop (see office/js/main.js). -->
 <script src="../printer/js/main.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/start.js"></script>
 <script src="js/debug-panel.js"></script>
 </body>

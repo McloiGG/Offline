@@ -21,6 +21,29 @@
   paperInput.max = MAX_PAPER;
   paperInput.oninput = () => { if (paperInput.value !== '') setPaperCount(Number(paperInput.value)); };
 
+  // Sound effects: one button per sound, a toggle for the looping print sound, and a volume slider.
+  const audio = window.Cetak.office.audio;
+  document.querySelectorAll('[data-sound]').forEach(btn => { btn.onclick = () => audio.play(btn.dataset.sound); });
+
+  const printSoundBtn = document.getElementById('sound-print');
+  printSoundBtn.onclick = () => {
+    if (audio.isPrinting()) audio.stopPrinting(); else audio.startPrinting();
+  };
+  // The sound can also be started/stopped by the real Print button, so keep the label in sync.
+  audio.onPrintingChange = on => {
+    printSoundBtn.textContent = 'Printing: ' + (on ? 'on' : 'off');
+    printSoundBtn.classList.toggle('on', on);
+  };
+
+  const overheatBtn = document.getElementById('sound-overheat');
+  overheatBtn.onclick = () => { if (audio.isOverheating()) audio.stopOverheat(); else audio.startOverheat(); };
+  audio.onOverheatChange = on => {
+    overheatBtn.textContent = 'Overheat fan: ' + (on ? 'on' : 'off');
+    overheatBtn.classList.toggle('on', on);
+  };
+
+  document.getElementById('sound-volume').oninput = e => audio.setVolume(Number(e.target.value));
+
   tab.onclick = () => setOpen(!root.classList.contains('open'));
 
   addEventListener('mousemove', e => root.classList.toggle('near', e.clientX > innerWidth - EDGE_PX));
