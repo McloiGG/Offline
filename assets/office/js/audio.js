@@ -66,13 +66,9 @@
     src.stop(t + dur + 0.02);
   }
 
-  // The ink panel logo blinks red while a warning sound plays or the overheat fan is on.
-  let warnTimers = 0, overheatWarn = false, inkWarn = false;
-  function refreshWarning() { C.parts.inkPanel.setWarning(warnTimers > 0 || overheatWarn || inkWarn); }
-  function warnFor(ms) {
-    warnTimers++; refreshWarning();
-    setTimeout(() => { warnTimers--; refreshWarning(); }, ms);
-  }
+  // The ink panel logo blinks red only while the ink warning is on.
+  let inkWarn = false;
+  function refreshWarning() { C.parts.inkPanel.setWarning(inkWarn); }
 
   const thunk = (at, gain) => tone(150, at, 0.14, 'sine', gain, 55);
 
@@ -105,6 +101,9 @@
     }
   };
 
+  // Played when an ink, paper jam or overheat warning is resolved (turned off).
+  function playComplete() { if (ensure()) SOUNDS.complete(); }
+
   // Ink warning: the (loud) recording loops while on, so it is turned down.
   const INK_FILE = 'audio/ink.mp3', INK_LEVEL = 0.35;
   let inkEl = null;
@@ -118,10 +117,59 @@
     } else if (!on && inkEl) {
       inkEl.pause();
       inkEl = null;
+      playComplete();
     }
     inkWarn = on;
     refreshWarning();
     api.onInkWarningChange(on);
+  }
+
+  // Paper jam warning: the recording starts at JAM_FROM and loops JAM_FROM-JAM_TO (two copies cross-fade, so the
+  // seam is smooth), and the warning sound plays after every JAM_LOOPS_PER_BEEP loops, until it is turned off.
+  const JAM_FILE = 'audio/paperjam.mp3';
+  const JAM_FROM = 7, JAM_TO = 10, JAM_FADE = 0.6, JAM_LOOPS_PER_BEEP = 3;
+  let jam = null;                // { a, b, cur, next, fadeStart, loops, timer }
+
+  function setPaperJam(on) {
+    if (on && !jam && typeof Audio !== 'undefined') {
+      const state = { a: new Audio(JAM_FILE), b: new Audio(JAM_FILE), next: null, fadeStart: 0, loops: 0 };
+      state.cur = state.a;
+      state.cur.volume = volume;
+      state.cur.currentTime = JAM_FROM;
+      jam = state;
+      state.timer = setInterval(() => tickJam(state), 30);
+      state.cur.play().catch(() => {});
+    } else if (!on && jam) {
+      clearInterval(jam.timer);
+      jam.a.pause();
+      jam.b.pause();
+      jam = null;
+      playComplete();
+    }
+    api.onPaperJamChange(!!jam);
+  }
+
+  function tickJam(state) {
+    const now = performance.now() / 1000;
+    if (!state.next) {
+      if (state.cur.currentTime >= JAM_TO - JAM_FADE) {
+        state.next = state.cur === state.a ? state.b : state.a;
+        state.next.currentTime = JAM_FROM;
+        state.next.volume = 0;
+        state.next.play().catch(() => {});
+        state.fadeStart = now;
+        if (++state.loops % JAM_LOOPS_PER_BEEP === 0 && ensure()) SOUNDS.warning();
+      }
+      return;
+    }
+    const t = Math.min(1, (now - state.fadeStart) / JAM_FADE);
+    state.cur.volume = volume * (1 - t);
+    state.next.volume = volume * t;
+    if (t >= 1) {
+      state.cur.pause();
+      state.cur = state.next;
+      state.next = null;
+    }
   }
 
   // ---- printing: a repeating carriage sweep with a steady motor hum underneath ----
@@ -202,7 +250,6 @@
     });
     state.timer = setInterval(() => tickOverheat(state), 30);
     state.cur.play().catch(() => {});
-    overheatWarn = true; refreshWarning();
     api.onOverheatChange(true);
   }
 
@@ -236,16 +283,16 @@
     clearInterval(state.timer);
     if (state.next) { state.next.pause(); state.next = null; }
     state.cur.volume = volume;
+    // The chime and the fan's ending (LOOP_TO to the end of the file) play together.
     if (state.cur.currentTime < LOOP_TO) state.cur.currentTime = LOOP_TO;
     state.cur.play().catch(() => {});
-    overheatWarn = false; refreshWarning();
+    playComplete();
     api.onOverheatChange(false);
   }
 
   function finishOverheat(state) {
     clearInterval(state.timer);
     if (overheat === state) overheat = null;
-    overheatWarn = false; refreshWarning();
     api.onOverheatChange(false);
   }
 
@@ -253,13 +300,16 @@
     onPrintingChange() {},                          // replaced by the debug panel to update its button
     onOverheatChange() {},
     onInkWarningChange() {},
+    onPaperJamChange() {},
+    setPaperJam,
+    isPaperJam: () => !!jam,
     setInkWarning,
     isInkWarning: () => inkWarn,
     startOverheat,
     stopOverheat,
     isOverheating: () => !!overheat && !overheat.stopping,
     play(name) {
-      if (SOUNDS[name] && ensure()) { SOUNDS[name](); if (name === 'warning') warnFor(1100); }
+      if (SOUNDS[name] && ensure()) { SOUNDS[name]() }
     },
     startPrinting,
     stopPrinting,
@@ -268,6 +318,7 @@
       volume = Math.max(0, Math.min(1, v));
       if (master) master.gain.value = volume;
       if (printing && printing.el) printing.el.volume = volume;
+      if (jam && !jam.next) jam.cur.volume = volume;
       if (inkEl) inkEl.volume = volume * INK_LEVEL;
       if (overheat && !overheat.next) overheat.cur.volume = volume;
     }

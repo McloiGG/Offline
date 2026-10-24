@@ -50,6 +50,15 @@
     document.querySelectorAll('.ink-level').forEach((input, i) => { input.value = level; inkPanel.setLevel(i, level / 100); });
   };
 
+  const jamBtn = document.getElementById('sound-jam');
+  jamBtn.onclick = () => audio.setPaperJam(!audio.isPaperJam());
+  audio.onPaperJamChange = on => {
+    jamBtn.textContent = 'Paper jam: ' + (on ? 'on' : 'off');
+    jamBtn.classList.toggle('on', on);
+    paperInput.value = on ? 0 : MAX_PAPER;
+    setPaperCount(on ? 0 : MAX_PAPER);
+  };
+
   const overheatBtn = document.getElementById('sound-overheat');
   overheatBtn.onclick = () => { if (audio.isOverheating()) audio.stopOverheat(); else audio.startOverheat(); };
   audio.onOverheatChange = on => {
