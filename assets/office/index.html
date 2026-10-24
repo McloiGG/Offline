@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CETAK Office 3D</title>
+<link rel="stylesheet" href="../printer/css/styles.css">
+<link rel="stylesheet" href="css/debug.css">
+</head>
+<body>
+<div id="plugmsg"></div>
+
+<!-- Debug controller: hidden until the mouse nears the right edge of the window (see js/debug-panel.js).
+     The printer scripts find these buttons by id / data-view, so keep those attributes. -->
+<div id="debug">
+  <button id="debug-tab" aria-controls="debug-panel" aria-expanded="false" aria-label="Open debug controller">&lsaquo;</button>
+  <aside id="debug-panel">
+    <h2>Debug controller</h2>
+    <p id="info">The office</p>
+
+    <h3>Camera</h3>
+    <div class="grid">
+      <button data-view="office" class="on">Office</button>
+      <button data-view="front">Printer front</button>
+      <button data-view="three">Printer 3/4</button>
+      <button data-view="display">Display</button>
+      <button data-view="ink">Ink display</button>
+      <button data-view="vent">Ventilation</button>
+    </div>
+
+    <h3>Game states</h3>
+    <div class="list">
+      <button data-view="s1">1 Paper jam</button>
+      <button data-view="s2">2 Ink low</button>
+      <button data-view="s3">3 Offline</button>
+      <button data-view="s4">4 Overheating</button>
+      <button data-view="s5">5 Plug</button>
+    </div>
+
+    <h3>Toggles</h3>
+    <div class="list">
+      <button id="spin">Auto-rotate: off</button>
+      <button id="cass">Cassettes: 2</button>
+      <button id="air">Airflow: off</button>
+      <button id="print">Print: off</button>
+    </div>
+
+    <p class="hint">Drag to rotate, scroll to zoom, right-drag to pan. Esc closes this panel.</p>
+  </aside>
+</div>
+
+<!-- three.js r128 (global build). Needs internet. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<!-- The printer is reused as-is from ../printer. Plain scripts (not ES modules) so this works from file://.
+     ORDER MATTERS: each file only depends on the ones above it. -->
+<script src="../printer/js/config.js"></script>
+<script src="../printer/js/materials.js"></script>
+<script src="../printer/js/scene.js"></script>
+<script src="../printer/js/helpers.js"></script>
+
+<script src="../printer/js/parts/casters.js"></script>
+<script src="../printer/js/parts/cassettes.js"></script>
+<script src="../printer/js/parts/body.js"></script>
+<script src="../printer/js/parts/output-tray.js"></script>
+<script src="../printer/js/parts/scanner.js"></script>
+<script src="../printer/js/parts/display.js"></script>
+<script src="../printer/js/parts/ink-panel.js"></script>
+<script src="../printer/js/parts/vents.js"></script>
+<script src="../printer/js/parts/power.js"></script>
+
+<script src="../printer/js/anim/printing.js"></script>
+<script src="../printer/js/anim/airflow.js"></script>
+
+<script src="../printer/js/ui/views.js"></script>
+<script src="../printer/js/ui/toast.js"></script>
+<script src="../printer/js/ui/picking.js"></script>
+<script src="../printer/js/ui/buttons.js"></script>
+
+<!-- The office, built on top of the printer scene. -->
+<script src="js/config.js"></script>
+<script src="js/materials.js"></script>
+<script src="js/util.js"></script>
+<script src="js/room.js"></script>
+<script src="js/people/figure.js"></script>
+<script src="js/props/furniture.js"></script>
+<script src="js/props/decor.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/people/walkers.js"></script>
+<script src="js/people/chatters.js"></script>
+<script src="js/main.js"></script>
+
+<!-- The printer's render loop must come after the office loop (see office/js/main.js). -->
+<script src="../printer/js/main.js"></script>
+<script src="js/start.js"></script>
+<script src="js/debug-panel.js"></script>
+</body>
+</html>
