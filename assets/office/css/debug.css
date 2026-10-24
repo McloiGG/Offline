@@ -2,6 +2,7 @@
    appears when the mouse nears the edge. Button styles (button, button.on) come from the printer's styles.css. */
 
 #debug {
+  --panel-w: min(260px, 80vw);
   position: fixed;
   top: 0;
   right: 0;
@@ -12,7 +13,6 @@
 }
 
 #debug-panel {
-  --panel-w: min(260px, 80vw);
   position: absolute;
   top: 0;
   right: 0;
@@ -71,7 +71,7 @@
   transform: translate(0, -50%);
   pointer-events: auto;
 }
-#debug.open #debug-tab { right: min(260px, 80vw); }
+#debug.open #debug-tab { right: var(--panel-w); }
 
 /* Touch screens have no hover, so keep the arrow visible there. */
 @media (hover: none) {

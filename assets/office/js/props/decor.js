@@ -7,6 +7,10 @@
   const { box, cyl, sphere } = C.office.util;
   const { canvasTex } = C.helpers;
 
+  // Shiny see-through material (glass, water, plastic). Not cached: callers tweak these per mesh.
+  const glassy = (color, opacity, roughness) =>
+    new THREE.MeshStandardMaterial({ color, roughness: roughness === undefined ? 0.08 : roughness, metalness: 0.1, transparent: true, opacity, depthWrite: false });
+
   // Metal bin (open at the top) lined with a light blue plastic bag. The bag sits INSIDE the bin and is
   // folded over the rim, so the metal still shows below it. `overflowing` fills the bag higher with paper.
   function trashCan(overflowing) {
@@ -68,9 +72,9 @@
     cyl(4.4, 4.4, 5, std(0x6b3a1e, 0.3), -22, 105, 3, g, 14);
 
     // glass jug + cup stack + sugar jar
-    cyl(6.6, 6.6, 15, new THREE.MeshStandardMaterial({ color: 0x3a2412, roughness: 0.15, transparent: true, opacity: 0.8 }), 6, 98, -6, g, 18);
+    cyl(6.6, 6.6, 15, glassy(0x3a2412, 0.8, 0.15), 6, 98, -6, g, 18);
     for (let i = 0; i < 4; i++) cyl(4.6, 3.4, 10, std(0xf6f6f6, 0.9), 26, 95 + i * 3.6, -8, g, 14);
-    cyl(6, 6, 10, new THREE.MeshStandardMaterial({ color: 0xe9f1f7, roughness: 0.1, transparent: true, opacity: 0.6 }), 38, 95, 4, g, 14);
+    cyl(6, 6, 10, glassy(0xe9f1f7, 0.6, 0.1), 38, 95, 4, g, 14);
     cyl(5.4, 5.4, 6, std(0xfdfdfd, 0.9), 38, 92, 4, g, 14);
 
     // sign above the station
@@ -99,6 +103,7 @@
     return g;
   }
 
+  // Potted plant; `height` is roughly the leaf height (default 70).
   function plant(height) {
     const g = new THREE.Group();
     const h = height || 70;
@@ -121,8 +126,6 @@
     const grey = std(0xc9ced5, 0.5);
     const steel = std(0xb9bec6, 0.3, 0.7);
     const dark = std(0x1d2025, 0.5);
-    const glassy = (color, opacity) =>
-      new THREE.MeshStandardMaterial({ color, roughness: 0.08, metalness: 0.1, transparent: true, opacity, depthWrite: false });
 
     // body: dark plinth, white cabinet, light-grey dispensing section, steel top plate
     box(34, 5, 34, dark, 0, 2.5, 0, g);

@@ -6,34 +6,41 @@
   const { canvasTex } = C.helpers;
   const { scene } = C.scene;
 
-  const bubbleTextures = CHAT_PHRASES.map(text =>
-    canvasTex(512, 160, (g, w, h) => {
+  const INK = '#1b1d22';
+  const TAIL = 36;                       // height of the bubble's pointer, at the bottom of the canvas
+
+  // A white rounded speech bubble with a pointer at the bottom; the text shrinks until it fits.
+  function bubbleTexture(text) {
+    return canvasTex(512, 160, (g, w, h) => {
+      const bottom = h - TAIL;
       g.fillStyle = '#ffffff';
-      g.strokeStyle = '#1b1d22';
+      g.strokeStyle = INK;
       g.lineWidth = 8;
       g.beginPath();
       g.moveTo(20, 8);
-      g.arcTo(w - 8, 8, w - 8, h - 36, 28);
-      g.arcTo(w - 8, h - 36, 8, h - 36, 28);
-      g.lineTo(w / 2 + 16, h - 36);
+      g.arcTo(w - 8, 8, w - 8, bottom, 28);
+      g.arcTo(w - 8, bottom, 8, bottom, 28);
+      g.lineTo(w / 2 + 16, bottom);
       g.lineTo(w / 2, h - 6);
-      g.lineTo(w / 2 - 16, h - 36);
-      g.arcTo(8, h - 36, 8, 8, 28);
+      g.lineTo(w / 2 - 16, bottom);
+      g.arcTo(8, bottom, 8, 8, 28);
       g.arcTo(8, 8, w - 8, 8, 28);
       g.closePath();
       g.fill();
       g.stroke();
-      g.fillStyle = '#1b1d22';
+
       let size = 58;
-      g.font = 'bold ' + size + 'px Arial, Helvetica, sans-serif';
-      while (g.measureText(text).width > w - 56 && size > 20) {
-        size -= 2;
-        g.font = 'bold ' + size + 'px Arial, Helvetica, sans-serif';
-      }
+      const setFont = () => { g.font = 'bold ' + size + 'px Arial, Helvetica, sans-serif'; };
+      setFont();
+      while (g.measureText(text).width > w - 56 && size > 20) { size -= 2; setFont(); }
+      g.fillStyle = INK;
       g.textAlign = 'center';
       g.textBaseline = 'middle';
-      g.fillText(text, w / 2, (h - 36) / 2 + 6);
-    }));
+      g.fillText(text, w / 2, bottom / 2 + 6);
+    });
+  }
+
+  const bubbleTextures = CHAT_PHRASES.map(bubbleTexture);
 
   const people = CHATTERS.map(cfg => {
     const person = figure.create(cfg);

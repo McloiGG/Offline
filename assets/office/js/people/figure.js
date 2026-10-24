@@ -1,7 +1,8 @@
 // A simple blocky person, built from boxes and spheres, plus props they can carry and poses.
 // Rest pose faces +z. Rotating a limb group about x by a NEGATIVE angle swings it forward.
-// Exposes: Cetak.office.figure = { create, addStack, addFolder, addCup, walkPose, chatPose, sitPose, standPose }
-//   create({ shirt, pants, skin, hair }) -> { group, body, legL, legR, armL, armR, head, cup? }
+// Exposes: Cetak.office.figure = { create, addStack, addFolder, addCup, walkPose, chatPose, sitPose }
+//   create({ shirt, pants, skin, hair }) -> { group, body, legL, legR, armL, armR, head, cup }
+//   (cup stays null until addCup() is called.)
 (function (C) {
   const { std } = C.office.mat;
   const { box, cyl, sphere } = C.office.util;
@@ -42,9 +43,13 @@
     head.position.set(0, SHOULDER_Y + 16, 0);
     body.add(head);
     sphere(13, skin, 0, 0, 0, head);
-    const cap = sphere(13.8, std(opts.hair, 0.9), 0, 1.2, -1.5, head);
-    cap.geometry.dispose();
-    cap.geometry = new THREE.SphereGeometry(13.8, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    const hair = new THREE.Mesh(                                   // hair: the top 55% of a slightly larger sphere
+      new THREE.SphereGeometry(13.8, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      std(opts.hair, 0.9)
+    );
+    hair.position.set(0, 1.2, -1.5);
+    hair.castShadow = hair.receiveShadow = true;
+    head.add(hair);
     [-4.6, 4.6].forEach(x => sphere(1.5, std(0x111111, 0.4), x, 2, 12.2, head));
 
     return { group, body, legL, legR, armL, armR, head, cup: null };
@@ -144,14 +149,5 @@
     f.head.rotation.x = 0.05 + Math.sin(phase * 0.6) * 0.03;
   }
 
-  function standPose(f, phase) {
-    f.legL.rotation.x = f.legR.rotation.x = 0;
-    f.armL.rotation.x = Math.sin(phase * 1.3) * 0.05;
-    f.armR.rotation.x = -1.35 + Math.sin(phase * 2) * 0.08;   // pointing at the printer
-    f.body.rotation.x = 0.03;
-    f.body.position.y = 0;
-    f.head.rotation.y = Math.sin(phase * 0.8) * 0.25;
-  }
-
-  C.office.figure = { create, addStack, addFolder, addCup, walkPose, chatPose, sitPose, standPose };
+  C.office.figure = { create, addStack, addFolder, addCup, walkPose, chatPose, sitPose };
 })(window.Cetak);

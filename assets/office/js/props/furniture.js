@@ -83,5 +83,5 @@
     return g;
   }
 
-  C.office.furniture = { desk, chair, DESK };
+  C.office.furniture = { desk, chair };
 })(window.Cetak);

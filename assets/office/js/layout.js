@@ -3,7 +3,7 @@
 // Seated officemates are created here too, because each one belongs to a specific chair.
 (function (C) {
   const { ROOM } = C.office.config;
-  const { desk, chair } = C.office.furniture;
+  const { desk, chair } = C.office.furniture;   // the room's furniture builders (see props/furniture.js)
   const decor = C.office.decor;
   const figure = C.office.figure;
   const { place } = C.office.util;
