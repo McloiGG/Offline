@@ -26,7 +26,7 @@
     PLUG: { y: 13, inZ: -D / 2 - 0.9 },
 
     // Printing animation timings (seconds).
-    PRINT: { pool: 6, slide: 0.9, drop: 0.4, spawnEvery: 1.3 },
+    PRINT: { pool: 6, feed: 2.2, feedDist: 24, slide: 0.9, drop: 0.4, spawnEvery: 3.0 },
 
     // Camera presets: p = camera position, t = look-at target.
     // 's1'..'s5' are the five game states and share spots with some named views.
