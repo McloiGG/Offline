@@ -1,0 +1,29 @@
+/* Base layout: the 3D canvas always fills the window; the menu stage is scaled to fit and centered. */
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #14181f; user-select: none; -webkit-user-select: none; }
+body > canvas { position: fixed; left: 0; top: 0; width: 100vw !important; height: 100vh !important; display: block; touch-action: none; outline: none; }
+
+/* DANN's debug controller stays in the DOM (scripts need it) but is hidden unless the URL has ?debug */
+#debug, #plugmsg { display: none !important; }
+body.debug #debug { display: block !important; }
+
+.layer { position: fixed; inset: 0; }
+[hidden] { display: none !important; }
+
+/* ---------- main menu ---------- */
+#menu { z-index: 30; background: #20140e; transition: opacity .7s ease; overflow: hidden; }
+#menu::before { content: ""; position: absolute; inset: -40px; background: url(../img/menu-bg.png) center / cover; filter: blur(22px) brightness(.75); }
+#menu.leaving { opacity: 0; pointer-events: none; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1104px; transform-origin: 50% 50%;
+  background: url(../img/menu-bg.png) 0 0 / 1920px 1104px no-repeat; transition: transform 1.1s cubic-bezier(.6, 0, .3, 1); }
+#stage .obj { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; transition: transform .15s ease, filter .15s ease; }
+#stage .obj img { display: block; width: 100%; height: auto; pointer-events: none; }
+#stage .obj:hover, #stage .obj:focus-visible { transform: translateY(-6px) scale(1.04); filter: drop-shadow(0 14px 10px rgba(0, 0, 0, .45)) brightness(1.08); outline: none; }
+#stage .obj:active { transform: translateY(2px) scale(.98); }
+#obj-start { left: 680px; top: 760px; width: 640px; }
+#obj-howto { left: 242px; top: 700px; width: 296px; }
+#obj-quit { left: 1470px; top: 640px; width: 268px; }
+#queue-note { position: absolute; left: 1215px; top: 318px; width: 160px; height: 140px; transform: rotate(3deg); background: #f6e27a; color: #4a4020;
+  font: 22px/1.15 "Comic Sans MS", "Segoe Print", cursive; padding: 20px 14px; box-sizing: border-box; box-shadow: 4px 8px 12px rgba(0, 0, 0, .35); text-align: center; pointer-events: none; }
+#howto-card { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, .55); cursor: pointer; z-index: 5; }
+#howto-card img { width: 804px; max-width: 90%; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .6)); }
+#stage.zoom { transform-origin: 1000px 330px; }
