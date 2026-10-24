@@ -1,0 +1,90 @@
+/* Debug controller: a panel that slides in from the right edge, with a small arrow tab that
+   appears when the mouse nears the edge. Button styles (button, button.on) come from the printer's styles.css. */
+
+#debug {
+  --panel-w: min(260px, 80vw);
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 0;                 /* the wrapper takes no space; children are positioned against the right edge */
+  z-index: 10;
+  pointer-events: none;     /* never blocks orbiting the camera; only the tab and panel catch the mouse */
+}
+
+#debug-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--panel-w);
+  height: 100%;
+  box-sizing: border-box;
+  padding: 14px 14px 20px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 1px solid #c9cdd5;
+  box-shadow: -6px 0 20px rgba(20, 30, 50, 0.12);
+  transform: translateX(105%);
+  transition: transform 0.22s ease;
+  pointer-events: auto;
+  color: #2b2e33;
+}
+#debug.open #debug-panel { transform: none; }
+
+#debug-panel h2 { margin: 0 0 4px; font-size: 16px; }
+#debug-panel h3 {
+  margin: 16px 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7079;
+}
+#debug-panel #info { margin: 0; font-size: 12px; line-height: 1.35; color: #003399; font-weight: 700; min-height: 2.7em; }
+#debug-panel .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#debug-panel .list { display: flex; flex-direction: column; gap: 6px; }
+#debug-panel button { text-align: left; }
+#debug-panel .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #2b2e33; }
+#debug-panel input[type="range"] { width: 100%; }
+#debug-panel input[type="number"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 8px;
+  font: inherit;
+  font-size: 14px;
+  border: 1px solid #c9cdd5;
+  border-radius: 6px;
+}
+#debug-panel .hint { margin: 18px 0 0; font-size: 11px; color: #7a7f88; line-height: 1.4; }
+
+#debug-tab {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 26px;
+  height: 64px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  text-align: center;
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: -2px 0 10px rgba(20, 30, 50, 0.15);
+  opacity: 0;
+  transform: translate(100%, -50%);
+  transition: opacity 0.18s ease, transform 0.18s ease, right 0.22s ease;
+  pointer-events: none;
+}
+#debug.near #debug-tab,
+#debug.open #debug-tab,
+#debug-tab:focus-visible {
+  opacity: 1;
+  transform: translate(0, -50%);
+  pointer-events: auto;
+}
+#debug.open #debug-tab { right: var(--panel-w); }
+
+/* Touch screens have no hover, so keep the arrow visible there. */
+@media (hover: none) {
+  #debug-tab { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
+}

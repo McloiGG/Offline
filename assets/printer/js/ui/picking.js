@@ -20,11 +20,19 @@
     zones.push(mesh);
   }
 
-  addZone('s1', 70, 14, 6,  0,     30,   ZF + 1);              // paper cassette C1
+  addZone('s1', 70, 14, 6,  0,     27.4, ZF + 1, { isTray: true });   // paper cassette C1
   addZone('s2', 30, 12, 4, -19.5,  66.6, ZF + 2);              // ink display
   addZone('s3', 33, 18, 4,  19.3, 107,   ZF + 6);              // touchscreen
   addZone('s4', 6,  24, 36, 35.5,  64,  -6);                   // right vent
   addZone('s5', 16, 11, 3,  0,     13,  -D / 2 - 1.2, { isPlug: true });   // power plug
+
+  // The drawer slides away from its zone, so its own meshes must be clickable too (to close it again).
+  C.parts.cassettes.drawer.traverse(m => {
+    if (!m.isMesh) return;
+    m.userData.view = 's1';
+    m.userData.isTray = true;
+    zones.push(m);
+  });
 
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
@@ -47,6 +55,9 @@
       C.ui.toast(plugged
         ? 'Plugged back in. Printer rebooting...'
         : 'Unplugged. Click the port again to plug it back in.');
+    } else if (zone.isTray) {
+      // Open/close the drawer. Opening also flies the camera in for a look at the paper.
+      if (C.parts.cassettes.toggleTray()) goTo(zone.view);
     } else {
       goTo(zone.view);
     }
