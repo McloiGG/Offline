@@ -86,11 +86,17 @@
   // the Back button follows the camera
   C.office.updaters.push(() => { back.hidden = !(inGame && P.zoomed()); });
 
-  // ---- GamePix SDK: the platform can pause the game (ads, tab switches) ----
-  try {
-    if (window.GamePix && GamePix.events && GamePix.events.on) {
-      GamePix.events.on('pause', () => { hold.sdk = true; applyAudio(); });
-      GamePix.events.on('resume', () => { hold.sdk = false; applyAudio(); });
-    }
-  } catch (e) { /* the game runs without the SDK */ }
+  // ---- GamePix SDK: the platform can pause the game or mute it, and expects the lifecycle calls ----
+  const sdk = fn => { try { if (window.GamePix) fn(window.GamePix); } catch (e) { /* the game runs without the SDK */ } };
+  sdk(gp => {
+    gp.events.on('pause', () => { hold.sdk = true; applyAudio(); });
+    gp.events.on('resume', () => { hold.sdk = false; applyAudio(); });
+    gp.events.on('soundOff', () => { muted = true; applyAudio(); });
+    gp.events.on('soundOn', () => { muted = false; applyAudio(); });
+  });
+  addEventListener('load', () => sdk(gp => gp.lifecycle.loaded()));
+  addEventListener('pointerdown', () => sdk(gp => gp.lifecycle.firstInteraction()), { once: true });
+  G.on('stateStart', d => { if (d.index === 0 && !d.reset) sdk(gp => gp.lifecycle.gameStart()); });
+  G.on('rating', r => sdk(gp => gp.updateScore(Math.round(r.score))));
+  G.on('close', () => sdk(gp => gp.gameStop()));
 })(window.Offline);
