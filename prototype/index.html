@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OFFLINE</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<!-- MAIN MENU (2D flat office, no printer visible) -->
+<div id="menu" class="screen">
+  <div id="menuScene">
+    <div id="mWall"></div><div id="mDesk"></div>
+    <img id="mCat" src="img/cat-peek.svg" alt="">
+    <div id="mMonitor"><div id="mScreen"><span>OFFLINE</span></div><div id="mSticky">the printer is broken.</div></div>
+    <div id="mStand"></div>
+    <i class="paper p1"></i><i class="paper p2"></i><i class="paper p3"></i><i class="pen"></i>
+    <button id="btnHow" class="deskobj nbk"><span class="lbl">HOW TO PLAY</span></button>
+    <button id="btnStart" class="deskobj kbd"><span class="lbl">START</span></button>
+    <button id="btnQuit" class="deskobj cupb"><span class="lbl">QUIT</span></button>
+    <div id="card" class="hidden"><p>The printer is broken. Fix it.</p><small>click to dismiss</small></div>
+  </div>
+</div>
+<div id="cover" class="hidden"></div>
+<div id="line" class="hidden"></div>
+
+<!-- GAME HUD -->
+<div id="hud" class="hidden">
+  <div id="queue" class="chip"><b id="queueNum">47</b><span>in queue</span></div>
+  <div id="score" class="chip"><span>Score</span><b id="scoreNum">1000</b></div>
+</div>
+
+<div id="coworker" class="hidden"><canvas id="cwCanvas" width="512" height="512"></canvas></div>
+<div id="bubble" class="hidden"></div>
+<div id="toasts"></div>
+<div id="hands" class="hidden"></div>
+<div id="rotHint" class="hidden">Drag to rotate the printer</div>
+
+<!-- 2D INTERACTION INTERFACE -->
+<div id="panel" class="hidden">
+  <button id="panelClose" title="Close (Esc)">Close</button>
+  <div id="stage"></div>
+  <div id="panelDiag" class="hidden"><span id="diagLabel">Running diagnostic</span><div><i id="diagFill"></i></div><em id="diagPct">0%</em></div>
+  <div id="fakeCheck" class="hidden">
+    <svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true">
+      <circle cx="60" cy="60" r="50" fill="#4fd17a" opacity="0.2"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#4fd17a" stroke-width="6"/>
+      <path d="M34 62l17 17 36-38" fill="none" stroke="#4fd17a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div id="actions"></div>
+</div>
+
+
+<div id="pageView" class="hidden"><div class="sheet"></div><small>click to close</small></div>
+<div id="end" class="screen hidden">
+  <div class="card">
+    <h2>Efficiency Rating</h2>
+    <b id="endRating">0</b>
+    <small id="endCount">Closing in 8</small>
+  </div>
+</div>
+<div id="black" class="hidden"></div>
+<button id="mute" title="Mute (M)">Sound on</button>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/hands.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
