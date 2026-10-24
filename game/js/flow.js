@@ -19,6 +19,7 @@
     F.apply(d.state.key);
     if (d.state.key === 'offline' || d.state.key === 'cable') C.office.audio.play('warning');
     H.score(G.score());
+    if (d.index === 0 && !d.reset) H.toast('Click a part of the printer to look closer. Esc or Back steps out.', '', 7000);
   });
   G.on('riddle', d => H.riddle(d.text, d.ms));
   G.on('score', () => H.score(G.score()));
