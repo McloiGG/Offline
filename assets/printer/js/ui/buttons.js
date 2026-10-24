@@ -1,4 +1,4 @@
-// Wires up every button in the bar. Camera buttons carry data-view="<preset name>".
+// Wires up every button, by id or data-view="<preset name>" (the printer's bar, or the office's debug panel).
 (function (C) {
   const { VIEWS } = C.config;
   const { controls, stack } = C.scene;
@@ -8,7 +8,7 @@
 
   const labelled = (btn, name, on) => { btn.textContent = name + (on ? 'on' : 'off'); };
 
-  // Camera preset buttons (bottom bar + the five state buttons on the right).
+  // Camera preset buttons (view presets + the five state buttons).
   document.querySelectorAll('[data-view]').forEach(btn => {
     btn.onclick = () => views.goTo(btn.dataset.view);
   });

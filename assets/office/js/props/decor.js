@@ -11,15 +11,20 @@
   const glassy = (color, opacity, roughness) =>
     new THREE.MeshStandardMaterial({ color, roughness: roughness === undefined ? 0.08 : roughness, metalness: 0.1, transparent: true, opacity, depthWrite: false });
 
+  // Trash can materials, built once and shared by every can.
+  const trash = {
+    metal: new THREE.MeshStandardMaterial({ color: 0x6d747f, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide }),
+    bag: new THREE.MeshStandardMaterial({ color: 0x9fd3f0, roughness: 0.25, metalness: 0.05, side: THREE.DoubleSide }),
+    bagFold: new THREE.MeshStandardMaterial({ color: 0x86c0e0, roughness: 0.3, side: THREE.DoubleSide }),
+    paper: std(0xf2f2f2, 1)
+  };
+
   // Metal bin (open at the top) lined with a light blue plastic bag. The bag sits INSIDE the bin and is
   // folded over the rim, so the metal still shows below it. `overflowing` fills the bag higher with paper.
   function trashCan(overflowing) {
     const g = new THREE.Group();
     g.scale.setScalar(0.8);
-    const metal = new THREE.MeshStandardMaterial({ color: 0x6d747f, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide });
-    const bag = new THREE.MeshStandardMaterial({ color: 0x9fd3f0, roughness: 0.25, metalness: 0.05, side: THREE.DoubleSide });
-    const bagFold = new THREE.MeshStandardMaterial({ color: 0x86c0e0, roughness: 0.3, side: THREE.DoubleSide });
-    const paper = std(0xf2f2f2, 1);
+    const { metal, bag, bagFold, paper } = trash;
 
     const openTube = (rTop, rBottom, h, mat, y) => {
       const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, 24, 1, true), mat);
