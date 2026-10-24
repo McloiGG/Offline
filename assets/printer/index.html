@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CETAK Printer 3D</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="hud">
+  <h1>CETAK &mdash; A working Printer</h1>
+  <p>A3 colour multifunction printer &middot; drag to rotate, scroll to zoom, right-drag to pan</p>
+  <p id="info">3/4 view</p>
+</div>
+
+<div id="states">
+  <button data-view="s1">1 Paper jam</button>
+  <button data-view="s2">2 Ink low</button>
+  <button data-view="s3">3 Offline</button>
+  <button data-view="s4">4 Overheating</button>
+  <button data-view="s5">5 Plug</button>
+</div>
+
+<div id="plugmsg"></div>
+
+<div id="bar">
+  <button data-view="front">Front</button>
+  <button data-view="three" class="on">3/4 view</button>
+  <button data-view="display">Display</button>
+  <button data-view="ink">Ink display</button>
+  <button data-view="vent">Ventilation</button>
+  <span class="sep"></span>
+  <button id="spin">Auto-rotate: on</button>
+  <button id="cass">Cassettes: 2</button>
+  <button id="air">Airflow: off</button>
+  <button id="print">Print: off</button>
+</div>
+
+<!-- three.js r128 (global build). Needs internet. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<!-- Plain scripts (not ES modules) so the page works when double-clicked from disk.
+     ORDER MATTERS: each file only depends on the ones above it. -->
+<script src="js/config.js"></script>
+<script src="js/materials.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/helpers.js"></script>
+
+<script src="js/parts/casters.js"></script>
+<script src="js/parts/cassettes.js"></script>
+<script src="js/parts/body.js"></script>
+<script src="js/parts/output-tray.js"></script>
+<script src="js/parts/scanner.js"></script>
+<script src="js/parts/display.js"></script>
+<script src="js/parts/ink-panel.js"></script>
+<script src="js/parts/vents.js"></script>
+<script src="js/parts/power.js"></script>
+
+<script src="js/anim/printing.js"></script>
+<script src="js/anim/airflow.js"></script>
+
+<script src="js/ui/views.js"></script>
+<script src="js/ui/toast.js"></script>
+<script src="js/ui/picking.js"></script>
+<script src="js/ui/buttons.js"></script>
+
+<script src="js/main.js"></script>
+</body>
+</html>
