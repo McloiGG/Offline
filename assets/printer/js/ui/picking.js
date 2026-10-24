@@ -1,8 +1,8 @@
 // Click-to-zoom. Invisible boxes ("hit zones") sit over each compartment; clicking one flies the
-// camera to that state. In state 5 the back zone is the plug itself and toggles it instead.
+// camera to that state. In state 5 you can also hold the wall plug and drag it out of / back into the socket.
 (function (C) {
   const { D, ZF } = C.config;
-  const { camera, renderer, printer } = C.scene;
+  const { camera, renderer, printer, controls } = C.scene;
   const { goTo } = C.ui.views;
   const power = C.parts.power;
 
@@ -24,7 +24,7 @@
   addZone('s2', 30, 12, 4, -19.5,  66.6, ZF + 2);              // ink display
   addZone('s3', 33, 18, 4,  19.3, 107,   ZF + 6);              // touchscreen
   addZone('s4', 6,  24, 36, 35.5,  64,  -6);                   // right vent
-  addZone('s5', 16, 11, 3,  0,     13,  -D / 2 - 1.2, { isPlug: true });   // power plug
+  addZone('s5', 16, 11, 3,  0,     13,  -D / 2 - 1.2);             // power port on the back
 
   // The drawer slides away from its zone, so its own meshes must be clickable too (to close it again).
   C.parts.cassettes.drawer.traverse(m => {
@@ -34,28 +34,81 @@
     zones.push(m);
   });
 
+  // The wall plug is also a zone: clicking it from another view flies to the socket.
+  power.hit.userData.view = 's5';
+  zones.push(power.hit);
+
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
   let downAt = null;
 
-  renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+  // ---- holding and dragging the wall plug (State 5) ----
+  // The pointer ray is intersected with a horizontal plane through the plug, and the plug follows its z.
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -C.config.WALL.socketY);
+  const planePoint = new THREE.Vector3();
+  let drag = null;                       // { grabZ, grabPull } while the plug is held
+
+  function aim(e) {
+    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    raycaster.setFromCamera(mouse, camera);
+  }
+  const overPlug = () => C.state.currentView === 's5' && raycaster.intersectObject(power.hit, false).length > 0;
+  const planeZ = () => (raycaster.ray.intersectPlane(plane, planePoint) ? planePoint.z : null);
+
+  function endDrag() {
+    if (!drag) return;
+    drag = null;
+    controls.enabled = true;
+    power.release();
+    renderer.domElement.style.cursor = '';
+  }
+
+  renderer.domElement.addEventListener('pointerdown', e => {
+    downAt = [e.clientX, e.clientY];
+    aim(e);
+    if (!overPlug()) return;
+    const z = planeZ();
+    if (z === null) return;
+    drag = { grabZ: z, grabPull: power.getPull() };
+    downAt = null;                       // holding the plug is not a click
+    controls.enabled = false;            // and must not orbit the camera
+    renderer.domElement.style.cursor = 'grabbing';
+  });
+
+  renderer.domElement.addEventListener('pointermove', e => {
+    if (drag) return;
+    aim(e);
+    renderer.domElement.style.cursor = overPlug() ? 'grab' : '';
+  });
+
+  addEventListener('pointermove', e => {
+    if (!drag) return;
+    aim(e);
+    const z = planeZ();
+    if (z !== null) power.setPull(drag.grabPull + z - drag.grabZ);
+  });
+  addEventListener('pointerup', endDrag);
+  addEventListener('pointercancel', endDrag);
+
+  // Unplugged: the touchscreen and ink display go black; plugging back in turns them on again.
+  power.onChange(plugged => {
+    C.parts.display.setPower(plugged);
+    C.parts.inkPanel.setPower(plugged);
+    C.ui.toast(plugged
+      ? 'Plugged back in. Printer rebooting...'
+      : 'Unplugged. The screens are off. Pick the plug up and drag it back into the socket.');
+  });
 
   renderer.domElement.addEventListener('pointerup', e => {
     // A drag (orbiting the camera) is not a click.
     if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
 
-    mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-    raycaster.setFromCamera(mouse, camera);
+    aim(e);
     const hit = raycaster.intersectObjects(zones, false)[0];
     if (!hit) return;
 
     const zone = hit.object.userData;
-    if (zone.isPlug && C.state.currentView === 's5') {
-      const plugged = power.toggle();
-      C.ui.toast(plugged
-        ? 'Plugged back in. Printer rebooting...'
-        : 'Unplugged. Click the port again to plug it back in.');
-    } else if (zone.isTray) {
+    if (zone.isTray) {
       // Open/close the drawer. Opening also flies the camera in for a look at the paper.
       if (C.parts.cassettes.toggleTray()) goTo(zone.view);
     } else {

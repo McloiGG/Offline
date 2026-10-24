@@ -79,9 +79,14 @@
   C.parts.inkPanel = {
     names: INKS.map(ink => ink.name),
     setLevel,
+    setPower(on) { blackout.visible = !on; },
     setWarning(on) { warning = on; if (!on) logo.material.color.setHex(LOGO_OK); },
     update(t) { if (warning) logo.material.color.setHex(Math.floor(t * 3) % 2 ? LOGO_WARN : 0x4a1410); }
   };
+
+  // Switched off (printer unplugged): a black sheet hides the tanks and logo behind the glass.
+  const blackout = rect(372, 268, 478, 312, ZF + 2.55, 0.05, new THREE.MeshBasicMaterial({ color: 0x050506 }));
+  blackout.visible = false;
 
   rect(372, 268, 478, 312, ZF + 2.7, 0.1, glass);   // transparent cover
 })(window.Cetak);

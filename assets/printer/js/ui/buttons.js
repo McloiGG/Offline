@@ -26,12 +26,13 @@
     controls.target.y = VIEWS.three.t[1] + C.state.shift;
   };
 
+  // The printer page has Airflow and Print buttons; the office debug panel folds them into its sound toggles.
   const airBtn = document.getElementById('air');
-  airBtn.onclick = () => labelled(airBtn, 'Airflow: ', airflow.toggle());
+  if (airBtn) airBtn.onclick = () => labelled(airBtn, 'Airflow: ', airflow.toggle());
 
   // Print: toggles the looping animation and zooms to the output tray when switching on.
   const printBtn = document.getElementById('print');
-  printBtn.onclick = () => {
+  if (printBtn) printBtn.onclick = () => {
     if (printing.isOn()) printing.stop(); else printing.start();
     const on = printing.isOn();
     labelled(printBtn, 'Print: ', on);

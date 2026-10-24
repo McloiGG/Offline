@@ -1,6 +1,6 @@
-// Power: port on the back, a plug that slides in and out, the wall + socket, and a cord that
-// is rebuilt each time the plug moves.
-// Exposes: Cetak.parts.power = { plug, toggle(), isPlugged(), update() }
+// Power: port on the back with its plug, the wall + socket, a wall plug you can pull out, and a cord that
+// is rebuilt each time the wall plug moves. A released plug that is pulled out drops to the floor.
+// Exposes: Cetak.parts.power = { plug, wallPlug, hit, isPlugged(), getPull(), onChange(fn), onLand(fn), setPull(v), release(), update(dt) }
 (function (C) {
   const { D, WALL, PLUG } = C.config;
   const { shadow, label } = C.helpers;
@@ -32,12 +32,9 @@
   portLabel.position.set(0, -5.6, -0.7);
   portLabel.rotation.y = Math.PI;
 
-  // ---- the plug (slides between PLUG_IN and PLUG_OUT) ----
-  const PLUG_IN = new THREE.Vector3(0, PLUG.y, PLUG.inZ);
-  const PLUG_OUT = new THREE.Vector3(0, PLUG.y, PLUG.outZ);
-
+  // ---- the printer-side plug: stays seated in the port ----
   const plug = new THREE.Group();
-  plug.position.copy(PLUG_IN);
+  plug.position.set(0, PLUG.y, PLUG.inZ);
   printer.add(plug);
 
   const plugHead = shadow(new THREE.Mesh(new THREE.BoxGeometry(7.4, 4.2, 5), black));
@@ -72,27 +69,52 @@
     scene.add(slot);
   });
 
-  const wallPlug = shadow(new THREE.Mesh(new THREE.BoxGeometry(7.4, 4.2, 5), black));
-  wallPlug.position.set(WALL.socketX, WALL.socketY, WALL.z + 4);
+  // ---- the wall plug: the one you hold and pull out of the socket (State 5) ----
+  const PULL_MAX = 16;        // how far it can be pulled out of the socket
+  const UNPLUG_AT = 1;        // pulled out further than this = the printer has no power
+  const SNAP_BACK = 4;        // released closer than this = it snaps back into the socket
+  const IN_Z = WALL.z + 4;    // plugged in
+
+  const wallPlug = new THREE.Group();
+  wallPlug.position.set(WALL.socketX, WALL.socketY, IN_Z);
   scene.add(wallPlug);
 
-  // ---- cord: curve from the moving plug to the fixed wall plug ----
-  const cordEnd = new THREE.Vector3(WALL.socketX, WALL.socketY, WALL.z + 6.6);
-  const lastPlugPos = new THREE.Vector3(1e9, 0, 0);
+  wallPlug.add(shadow(new THREE.Mesh(new THREE.BoxGeometry(7.4, 4.2, 5), black)));
+  [-1.7, 1.7].forEach(x => {
+    const prong = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, 2.4), grey));
+    prong.position.set(x, 0, -3.7);
+    wallPlug.add(prong);
+  });
+
+  // Invisible, slightly larger box for clicking / grabbing the plug.
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 9), new THREE.MeshBasicMaterial({ visible: false }));
+  wallPlug.add(hit);
+
+  // ---- cord: curve from the printer plug to the wall plug (rebuilt whenever the wall plug moves) ----
+  const toWorld = new THREE.Vector3();
   let cord = null;
 
+  // A point on the wall plug's local z axis (+z is the back of the plug, where the cord leaves).
+  function plugPoint(z) {
+    return wallPlug.localToWorld(toWorld.set(0, 0, z)).clone();
+  }
+
   function rebuildCord() {
+    wallPlug.updateMatrixWorld(true);
     const a = plug.position.clone().add(new THREE.Vector3(0, 0, -5));
-    const mid = a.clone().lerp(cordEnd, 0.5);
-    const sag = Math.max(1.2, Math.min(a.y, cordEnd.y) * 0.08);
+    const e = plugPoint(2.6);
+    const lead = plugPoint(6.6);
+    const mid = a.clone().lerp(e, 0.5);
+    const sag = Math.max(1.2, Math.min(a.y, e.y) * 0.08);
+    lead.y = (lead.y + sag) / 2 - Math.max(0, e.y - sag) * 0.3;
     const points = [
       a,
       a.clone().add(new THREE.Vector3(0, -1.5, -5)),
-      new THREE.Vector3(mid.x * 0.8 + a.x * 0.2, sag, a.z * 0.65 + cordEnd.z * 0.35),
+      new THREE.Vector3(mid.x * 0.8 + a.x * 0.2, sag, a.z * 0.65 + e.z * 0.35),
       new THREE.Vector3(mid.x, sag, mid.z),
-      new THREE.Vector3(mid.x * 0.4 + cordEnd.x * 0.6, sag, a.z * 0.3 + cordEnd.z * 0.7),
-      new THREE.Vector3(cordEnd.x, WALL.socketY - 8, cordEnd.z + 4),
-      cordEnd.clone().add(new THREE.Vector3(0, 0, 0.6))
+      new THREE.Vector3(mid.x * 0.4 + e.x * 0.6, sag, a.z * 0.3 + e.z * 0.7),
+      lead,
+      e
     ];
     const geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 60, 0.7, 8, false);
     if (cord) {
@@ -102,26 +124,128 @@
       cord = shadow(new THREE.Mesh(geometry, black));
       scene.add(cord);
     }
-    lastPlugPos.copy(plug.position);
   }
-  rebuildCord();
+
+  // ---- state ----
+  // 'socket' = seated (or snapping back), 'held' = in the player's hand, 'fallen' = dropped and simulated.
+  const SOCKET = new THREE.Vector3(WALL.socketX, WALL.socketY, IN_Z);
+  const GRAVITY = 600;
+  let mode = 'socket';
+  let pull = 0;               // distance of the plug out of the socket along z (while seated / held)
+  let plugged = true;
+  const vel = new THREE.Vector3();
+  const spin = { x: 0, z: 0 };
+  let lastSig = NaN;
+  const changeListeners = [];
+  const landListeners = [];
+
+  function setPlugged(v) {
+    if (v === plugged) return;
+    plugged = v;
+    changeListeners.forEach(fn => fn(plugged));
+  }
+
+  // Half the plug's height when tilted, so it rests on the floor instead of sinking in.
+  function halfHeight() {
+    const rx = wallPlug.rotation.x, rz = wallPlug.rotation.z;
+    return 2.1 * Math.cos(rx) * Math.cos(rz) + 2.5 * Math.abs(Math.sin(rx)) + 3.7 * Math.abs(Math.sin(rz));
+  }
+
+  function simulateFall(dt) {
+    const p = wallPlug.position, r = wallPlug.rotation;
+    vel.y -= GRAVITY * dt;
+    p.addScaledVector(vel, dt);
+    r.x += spin.x * dt;
+    r.z += spin.z * dt;
+    p.z = Math.max(p.z, WALL.z + 3);                // never through the wall
+
+    const floor = halfHeight();
+    if (p.y > floor) return;
+    p.y = floor;
+    const impact = -vel.y;
+    if (impact > 14) {                              // bounce, losing energy
+      vel.y = impact * 0.32;
+      vel.x *= 0.6;
+      vel.z *= 0.6;
+      spin.x *= 0.45;
+      spin.z *= 0.45;
+      landListeners.forEach(fn => fn(impact));
+    } else {                                        // resting: slide to a stop and lie flat
+      vel.y = 0;
+      const k = Math.exp(-9 * dt);
+      vel.x *= k;
+      vel.z *= k;
+      spin.x = spin.z = 0;
+      const ease = 1 - Math.exp(-10 * dt);
+      r.x -= r.x * ease;
+      r.z -= r.z * ease;
+    }
+  }
+
+  function followHand(dt) {
+    const p = wallPlug.position, r = wallPlug.rotation;
+    const k = 1 - Math.exp(-28 * dt);
+    p.x += (SOCKET.x - p.x) * k;
+    p.y += (SOCKET.y - p.y) * k;
+    p.z += (SOCKET.z + pull - p.z) * k;
+    r.x -= r.x * k;
+    r.z -= r.z * k;
+  }
+
+  function apply(dt) {
+    if (mode === 'fallen') {
+      simulateFall(dt);
+    } else if (mode === 'held') {
+      followHand(dt);
+    } else {                                        // seated: ease back into the socket if it was let go close by
+      if (pull !== 0) {
+        pull *= Math.exp(-20 * dt);
+        if (pull < 0.02) pull = 0;
+      }
+      wallPlug.position.set(SOCKET.x, SOCKET.y, SOCKET.z + pull);
+      wallPlug.rotation.set(0, 0, 0);
+    }
+    setPlugged(mode !== 'fallen' && pull < UNPLUG_AT);
+
+    const p = wallPlug.position, r = wallPlug.rotation;
+    const sig = p.x + p.y * 3 + p.z * 7 + r.x * 11 + r.z * 13;
+    if (Math.abs(sig - lastSig) > 0.001 || lastSig !== lastSig) {
+      lastSig = sig;
+      rebuildCord();
+    }
+  }
+  apply(0);
 
   // ---- public API ----
-  let plugged = true;
-  let target = PLUG_IN;
-
   C.parts.power = {
     plug,
+    wallPlug,
+    hit,
     isPlugged: () => plugged,
-    toggle() {
-      plugged = !plugged;
-      target = plugged ? PLUG_IN : PLUG_OUT;
-      return plugged;
+    getPull: () => pull,
+    // Register fn(plugged) to be called whenever the printer loses or regains power.
+    onChange: fn => changeListeners.push(fn),
+    // Register fn(impactSpeed) to be called whenever the dropped plug hits the floor.
+    onLand: fn => landListeners.push(fn),
+    // While held, the plug follows the pointer (0 = in the socket). Grabbing a dropped plug picks it back up.
+    setPull(v) {
+      mode = 'held';
+      pull = Math.max(0, Math.min(PULL_MAX, v));
     },
-    // Call every frame: eases the plug toward its target and rebuilds the cord if it moved.
-    update() {
-      plug.position.lerp(target, 0.12);
-      if (plug.position.distanceToSquared(lastPlugPos) > 0.0004) rebuildCord();
-    }
+    // Let go: close to the socket it snaps back in; further out it drops to the floor.
+    release() {
+      if (mode !== 'held') return;
+      if (pull < SNAP_BACK) {
+        mode = 'socket';
+        return;
+      }
+      mode = 'fallen';
+      pull = PULL_MAX * 0.6;                        // where a re-grab will start from
+      vel.set((Math.random() - 0.5) * 16, 0, 14);
+      spin.x = (Math.random() - 0.5) * 9;
+      spin.z = (Math.random() - 0.5) * 7;
+    },
+    // Call every frame with the elapsed seconds.
+    update: apply
   };
 })(window.Cetak);
