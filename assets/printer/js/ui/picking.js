@@ -34,6 +34,9 @@
     zones.push(m);
   });
 
+  // The blue logo opens / closes the ink tray; the caps on the cartridges open once the tray is out.
+  zones.push(C.parts.inkPanel.hit, ...C.parts.inkPanel.capHits);
+
   // The wall plug is also a zone: clicking it from another view flies to the socket.
   power.hit.userData.view = 's5';
   zones.push(power.hit);
@@ -108,7 +111,15 @@
     if (!hit) return;
 
     const zone = hit.object.userData;
-    if (zone.isTray) {
+    if (zone.capIndex !== undefined) {
+      // Caps open once the tray is out and you are looking at the ink display; otherwise this just zooms in.
+      if (C.state.currentView !== zone.view) goTo(zone.view);
+      else if (C.parts.inkPanel.isOut()) C.ui.toast(C.parts.inkPanel.toggleCap(zone.capIndex) ? 'Cap opened.' : 'Cap closed.');
+    } else if (zone.isInk) {
+      // From another view the first click just zooms in; once zoomed, it opens / closes the container.
+      if (C.state.currentView !== zone.view) goTo(zone.view);
+      else C.ui.toast(C.parts.inkPanel.toggleOut() ? 'Ink container opened.' : 'Ink container closed.');
+    } else if (zone.isTray) {
       // Open/close the drawer. Opening also flies the camera in for a look at the paper.
       if (C.parts.cassettes.toggleTray()) goTo(zone.view);
     } else {

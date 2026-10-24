@@ -22,6 +22,7 @@
     if (fanPower < 0.002) fanPower = 0;
     fans.forEach(blades => { blades.rotation.z -= dt * FAN_SPEED * fanPower; });
     C.parts.cassettes.update(dt);
+    C.parts.inkPanel.slide(dt);
     C.anim.printing.update(dt);
     C.anim.airflow.update(dt);
     C.parts.power.update(dt);
