@@ -43,6 +43,16 @@
 #debug-panel .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 #debug-panel .list { display: flex; flex-direction: column; gap: 6px; }
 #debug-panel button { text-align: left; }
+#debug-panel .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #2b2e33; }
+#debug-panel input[type="number"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 8px;
+  font: inherit;
+  font-size: 14px;
+  border: 1px solid #c9cdd5;
+  border-radius: 6px;
+}
 #debug-panel .hint { margin: 18px 0 0; font-size: 11px; color: #7a7f88; line-height: 1.4; }
 
 #debug-tab {

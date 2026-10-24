@@ -37,7 +37,7 @@
       ink:     { p: [-20, 70, 72],   t: [-19.6, 66.6, 33], info: 'Ink display: pigment inks BK, Y, M, C behind a transparent window' },
       vent:    { p: [108, 70, -6],   t: [35, 64, -6],     info: 'Ventilation: louvred side and rear exhaust grilles with fans' },
       print:   { p: [-8, 124, 95],   t: [-14, 98, 34],    info: 'Printing: sheets come out under the "A working Printer" stripe' },
-      s1:      { p: [0, 34, 78],     t: [0, 27, 33],      info: 'State 1: Paper jam. Check the paper tray (C1).' },
+      s1:      { p: [0, 62, 105],    t: [0, 24, 38],      info: 'State 1: Paper jam. Click the paper tray (C1) to open it.' },
       s2:      { p: [-20, 70, 72],   t: [-19.6, 66.6, 33], info: 'State 2: Ink low. Check the ink cartridges.' },
       s3:      { p: [30, 118, 80],   t: [19.3, 107, 34],  info: 'State 3: Offline. Find the wifi icon on the display.' },
       s4:      { p: [108, 70, -6],   t: [35, 64, -6],     info: 'State 4: Overheating. Check the ventilation fans.' },

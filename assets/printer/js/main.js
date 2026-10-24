@@ -16,6 +16,7 @@
     const dt = Math.min(clock.getDelta(), MAX_DT);
 
     fans.forEach(blades => { blades.rotation.z -= dt * FAN_SPEED; });
+    C.parts.cassettes.update(dt);
     C.anim.printing.update(dt);
     C.anim.airflow.update(dt);
     C.parts.power.update();

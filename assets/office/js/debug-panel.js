@@ -15,6 +15,12 @@
     tab.setAttribute('aria-label', open ? 'Close debug controller' : 'Open debug controller');
   }
 
+  // Paper count: the tray removes sheets one by one down to the typed value (0 = empty tray).
+  const paperInput = document.getElementById('paper-count');
+  const { setPaperCount, MAX_PAPER } = window.Cetak.parts.cassettes;
+  paperInput.max = MAX_PAPER;
+  paperInput.oninput = () => { if (paperInput.value !== '') setPaperCount(Number(paperInput.value)); };
+
   tab.onclick = () => setOpen(!root.classList.contains('open'));
 
   addEventListener('mousemove', e => root.classList.toggle('near', e.clientX > innerWidth - EDGE_PX));
