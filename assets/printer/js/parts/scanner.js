@@ -25,6 +25,8 @@
   stackOfPaper.position.set(-2, 1, 4);
   adf.add(stackOfPaper);
 
+  C.parts.scanner = { adf, stackTop: 1 + 0.25 };                // the printing animation feeds sheets in from here
+
   [-15, 15].forEach(x => {
     const guide = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.8, 2, 30), grey));
     guide.position.set(x, 1.3, 4);

@@ -1,6 +1,7 @@
 // Airflow: dots streaming out of the right-hand vent. Blue by default (toggle), red while overheating (heat),
 // and blue after the overheating ends, fading from full to nothing (cool).
-// Exposes: Cetak.anim.airflow = { toggle(), heat(), cool(seconds), isOn(), update(dt) }
+// heat(onFull) calls onFull once when the red airflow reaches full strength.
+// Exposes: Cetak.anim.airflow = { toggle(), heat(onFull), cool(seconds), isOn(), update(dt) }
 (function (C) {
   const { printer, stack } = C.scene;
   const { ventY } = C.parts.vents;
@@ -38,19 +39,22 @@
   let coolLeft = 0;                     // seconds of blue "cooling" airflow still to show
   let strength = 1;                     // 0..1: scales speed, opacity and how many particles are shown
   let ramp = false;                     // true while strength is climbing from 0 to 1
+  let onFull = null;                    // called when the ramp reaches full strength
 
   C.anim.airflow = {
     isOn: () => points.visible,
     toggle() {
       coolLeft = 0;
       ramp = false;
+      onFull = null;
       strength = 1;
       points.material.color.setHex(BLUE);
       points.visible = !points.visible;
       return points.visible;
     },
-    heat() {
+    heat(callback) {
       coolLeft = 0;
+      onFull = callback || null;
       points.material.color.setHex(RED);
       strength = 0;
       ramp = true;
@@ -59,6 +63,7 @@
     cool(seconds) {
       coolTotal = coolLeft = seconds || COOL_SECONDS;
       ramp = false;
+      onFull = null;
       strength = 1;
       points.material.color.setHex(BLUE);
       points.visible = true;
@@ -72,7 +77,10 @@
       if (!points.visible) return;
       if (ramp) {
         strength = Math.min(1, strength + dt / RAMP_SECONDS);
-        if (strength >= 1) ramp = false;
+        if (strength >= 1) {
+          ramp = false;
+          if (onFull) { const fn = onFull; onFull = null; fn(); }
+        }
       }
       const ease = strength * strength * (3 - 2 * strength);     // smoothstep: slow start, gentle finish
       points.material.opacity = 0.8 * ease;

@@ -10,6 +10,32 @@
     ['Settings', '#7b8794'], ['Status', '#16a5a5'], ['Ink Level', '#00a0e9'], ['Eco', '#6cbf3c'], ['Help', '#9aa3ad']
   ];
 
+  let message = null;   // shown over the home screen as a red alert, e.g. 'Please insert paper'
+
+  function drawAlert(g, w) {
+    const bw = 620, bh = 190, bx = (w - bw) / 2, by = 190;
+    g.save();
+    g.shadowColor = 'rgba(0,0,0,0.45)';
+    g.shadowBlur = 24;
+    g.fillStyle = '#ffffff';
+    roundRectPath(g, bx, by, bw, bh, 22);
+    g.fill();
+    g.restore();
+    g.fillStyle = '#d93025';
+    roundRectPath(g, bx, by, bw, 62, 22);
+    g.fill();
+    g.fillRect(bx, by + 30, bw, 32);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#ffffff';
+    g.font = 'bold 30px Arial';
+    g.fillText('! ERROR', w / 2, by + 32);
+    g.fillStyle = '#2b3440';
+    let size = 40;                                   // shrink long messages until they fit inside the box
+    do g.font = 'bold ' + size-- + 'px Arial'; while (g.measureText(message).width > bw - 60 && size > 14);
+    g.fillText(message, w / 2, by + 125);
+  }
+
   function drawHomeScreen(g, w) {
     g.fillStyle = '#0a0a0c';
     roundRectPath(g, 0, 0, w, 560, 34);
@@ -63,13 +89,11 @@
       g.fillText(name, cx, cy + 82);
     });
 
-    // page dots + ready LED
+    // page dots
     g.fillStyle = '#c9ced6';
     [w / 2 - 70, w / 2, w / 2 + 70].forEach(x => { g.beginPath(); g.arc(x, 518, 11, 0, 7); g.fill(); });
-    g.fillStyle = '#3ddc84';
-    g.beginPath();
-    g.arc(w - 60, 518, 7, 0, 7);
-    g.fill();
+
+    if (message) drawAlert(g, w);
   }
 
   const width = 125 * S;
@@ -87,9 +111,10 @@
   const bezel = shadow(new THREE.Mesh(new THREE.BoxGeometry(width, height, 1.8), black));
   group.add(bezel);
 
+  const screenTex = canvasTex(1000, 560, drawHomeScreen);
   const face = new THREE.Mesh(
     new THREE.PlaneGeometry(width, height),
-    new THREE.MeshBasicMaterial({ map: canvasTex(1000, 560, drawHomeScreen) })
+    new THREE.MeshBasicMaterial({ map: screenTex })
   );
   face.position.z = 0.92;
   group.add(face);
@@ -97,5 +122,14 @@
   // The texture is multiplied by the material colour, so a near-black colour switches the screen off.
   group.setPower = on => face.material.color.setHex(on ? 0xffffff : 0x050506);
 
+  // Shows `text` as an alert over the home screen; null goes back to the plain home screen.
+  group.setMessage = text => {
+    if (text === message) return;
+    message = text;
+    drawHomeScreen(screenTex.image.getContext('2d'), 1000);
+    screenTex.needsUpdate = true;
+  };
+
+  group.size = { width, height };
   C.parts.display = group;
 })(window.Cetak);
