@@ -13,11 +13,14 @@
     btn.onclick = () => views.goTo(btn.dataset.view);
   });
 
+  // Escape flies back to the default 3/4 view.
+  addEventListener('keydown', e => { if (e.key === 'Escape') views.goTo('three'); });
+
   document.getElementById('spin').onclick = views.toggleSpin;
 
   // Cassettes: show/hide A2 + A1 and lift the stack so the extra drawers fit underneath.
   const cassBtn = document.getElementById('cass');
-  cassBtn.onclick = () => {
+  if (cassBtn) cassBtn.onclick = () => {
     const four = !extras.visible;
     extras.visible = four;
     C.state.shift = four ? SHIFT : 0;

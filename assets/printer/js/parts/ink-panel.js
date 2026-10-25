@@ -2,7 +2,7 @@
 // Clicking the blue logo (State 2) pulls a black tray holding the cartridges out toward the viewer (the front stays open
 // so they are visible); the glass cover slides out of the way and refill bottles appear above the caps. Each cap can then
 // be clicked to flip open and show the filling hole.
-// Exposes: Cetak.parts.inkPanel = { names, hit, capHits, setLevel, setPower, setWarning, toggleOut(), isOut(), toggleCap(i), slide(dt), update(t) }
+// Exposes: Cetak.parts.inkPanel = { names, hit, capHits, isEmpty, setLevel, setPower, setWarning, toggleOut(), isOut(), toggleCap(i), slide(dt), update(t) }
 // Z layering (front-most last) is deliberate -- keep the gaps or the tanks will flicker:
 //   panel +1.6 < holder +1.75 < cartridge shell +2.4 (fill front +2.25 inside it) < blackout +2.55 < glass +2.7
 (function (C) {
@@ -25,6 +25,7 @@
   const CAP_RADIUS = 0.8, CAP_SPEED = 9;
   const CAP_OPEN_ANGLE = Math.PI / 2;        // any further and the open cap dips into the cartridge
   const BOTTLE_R = 1.2, BOTTLE_LIFT = 9.1;   // bottle width, and how far above the cartridge top its pivot sits
+  const LOW_LEVEL = 0.05;                    // below this a tank counts as empty (the screen warns)
   const MIN_LEVEL = 0.04;                    // an "empty" tank still shows a sliver of ink
   const LOGO_OK = 0x7fd3ff, LOGO_WARN = 0xff3b30, LOGO_DIM = 0x4a1410;
 
@@ -243,6 +244,7 @@
 
   C.parts.inkPanel = {
     names: INKS.map(ink => ink.name),
+    isEmpty: i => fills[i].scale.y < LOW_LEVEL,
     hit,
     capHits,
     toggleOut() {

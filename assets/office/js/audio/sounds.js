@@ -1,5 +1,5 @@
 // The synthesised one-shot sound effects. Adds play(name) and playComplete() to Cetak.office.audio.
-//   names: warning, complete, unplug, plugIn, plugDrop, spark, trayOpen, trayClose
+//   names: warning, complete, unplug, plugIn, plugDrop, spark, switchOn, switchOff, trayOpen, trayClose
 (function (C) {
   const { engine, audio } = C.office;
   const { tone, swish } = engine;
@@ -47,6 +47,19 @@
       tone(3000, 0, 0.12, 'sawtooth', 0.12, 200);
       tone(110, 2.1, 0.9, 'sawtooth', 0.12, 30);
       thunk(2.1, 0.6);
+    },
+    // Power key pressed: a crisp click, then a rising blip (on) or a falling one (off).
+    switchOn() {
+      tone(2600, 0, 0.015, 'square', 0.09);
+      thunk(0.005, 0.3);
+      tone(660, 0.07, 0.09, 'triangle', 0.13);
+      tone(990, 0.14, 0.14, 'triangle', 0.13);
+    },
+    switchOff() {
+      tone(2600, 0, 0.015, 'square', 0.09);
+      thunk(0.005, 0.3);
+      tone(990, 0.07, 0.09, 'triangle', 0.13);
+      tone(520, 0.14, 0.22, 'triangle', 0.13, 260);
     },
     // Drawer rolling out, then a soft thunk as it reaches the end.
     trayOpen() {

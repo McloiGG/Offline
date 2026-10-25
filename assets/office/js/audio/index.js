@@ -18,6 +18,7 @@
   printing.start = function () { start(); audio.startPrinting(); };
   printing.stop = function () { stop(); audio.stopPrinting(); };
 
+  C.ui.powerSwitch.onChange(on => audio.play(on ? 'switchOn' : 'switchOff'));
   power.onChange(plugged => audio.play(plugged ? 'plugIn' : 'unplug'));
   power.onLand(() => audio.play('plugDrop'));
 

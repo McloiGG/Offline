@@ -18,14 +18,24 @@
   // Paper count: the tray removes sheets one by one down to the typed value (0 = empty tray).
   const paperInput = byId('paper-count');
   paperInput.max = MAX_PAPER;
-  paperInput.oninput = () => { if (paperInput.value !== '') setPaperCount(Number(paperInput.value)); };
+  paperInput.oninput = () => {
+    if (paperInput.value === '') return;
+    const n = Number(paperInput.value);
+    setPaperCount(n);
+    if (n > 0 && audio.isPaperJam()) audio.setPaperJam(false);   // loading paper clears the jam
+  };
 
   // Ink levels: one percent input per tank (0 still leaves a sliver of ink).
   function setInkLevels(percent) {
     inkInputs.forEach((input, i) => { input.value = percent; inkPanel.setLevel(i, percent / 100); });
   }
   inkInputs.forEach((input, i) => {
-    input.oninput = () => { if (input.value !== '') inkPanel.setLevel(i, Number(input.value) / 100); };
+    input.oninput = () => {
+      if (input.value === '') return;
+      inkPanel.setLevel(i, Number(input.value) / 100);
+      // A tank dropping below 5% starts the warning (keeping the typed levels).
+      if (!audio.isInkWarning() && inkPanel.names.some((_, k) => inkPanel.isEmpty(k))) audio.setInkWarning(true, true);
+    };
   });
 
   // One button per one-shot sound.
@@ -42,16 +52,17 @@
   // Ink warning: looping alarm, blinking logo, all tanks empty (off refills them).
   const inkBtn = byId('sound-ink');
   inkBtn.onclick = () => audio.setInkWarning(!audio.isInkWarning());
-  audio.onInkWarningChange = on => {
+  audio.onInkWarningChange = (on, keepLevels) => {
     setToggle(inkBtn, 'Ink warning', on);
-    setInkLevels(on ? 0 : 100);
+    if (!keepLevels) setInkLevels(on ? 0 : 100);
   };
 
-  // Paper jam: looping alarm with beeps, empty tray (off refills it).
+  // Paper jam: looping alarm with beeps, empty tray (off refills it, typing a paper count clears it).
   const jamBtn = byId('sound-jam');
   jamBtn.onclick = () => audio.setPaperJam(!audio.isPaperJam());
   audio.onPaperJamChange = on => {
     setToggle(jamBtn, 'Paper jam', on);
+    if (!on && Number(paperInput.value) > 0) return;   // the jam was cleared by typing a paper count
     paperInput.value = on ? 0 : MAX_PAPER;
     setPaperCount(on ? 0 : MAX_PAPER);
   };
@@ -59,12 +70,16 @@
   // Overheat: the fan sound plus red airflow from the vent; turning it off blows blue airflow for a few seconds.
   const overheatBtn = byId('sound-overheat');
   let overheating = false;
-  overheatBtn.onclick = () => {
-    overheating = !overheating;
-    if (overheating) { audio.startOverheat(); airflow.heat(); }
+  function setOverheat(on) {
+    if (on === overheating) return;
+    overheating = on;
+    if (on) { audio.startOverheat(); airflow.heat(audio.overheatAlarm); }
     else airflow.cool(audio.stopOverheat());      // the blue airflow fades out over the length of the ending sound
-    setToggle(overheatBtn, 'Overheat', overheating);
-  };
+    setToggle(overheatBtn, 'Overheat', on);
+  }
+  overheatBtn.onclick = () => setOverheat(!overheating);
+  // Switching the printer off resolves the overheat (the fan sound, alarm and error stop).
+  C.ui.powerSwitch.onChange(on => { if (!on) setOverheat(false); });
 
   byId('sound-volume').oninput = e => audio.setVolume(Number(e.target.value));
 })(window.Cetak);
