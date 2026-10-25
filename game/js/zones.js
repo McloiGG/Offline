@@ -38,9 +38,9 @@
     if (G.playing()) G.act('tray', false); else H.toast('Paper reloaded', 'good', 1500);
   }
 
-  // ---- ink tanks: click one to swap that cartridge ----
-  [392, 408, 424, 440].forEach((cx, i) => {
-    const m = P.mk(4.2, 12, 4, PX(cx), 66.3, ZF + 4.2);
+  // ---- ink tanks: click one to swap that cartridge (centre, width in photo px: the cartridges in parts/ink-panel.js) ----
+  [[392, 26], [413, 14], [429, 14], [445, 14]].forEach(([cx, w], i) => {
+    const m = P.mk(PX(cx + (w + 1) / 2) - PX(cx - (w + 1) / 2), 12, 4, PX(cx), 66.3, ZF + 4.2);
     m.userData.tank = i; addZone(m, 'ink');
   });
   const swapping = [false, false, false, false];
