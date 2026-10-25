@@ -1,6 +1,6 @@
-// Paper cassettes. C1 and C2 are always visible; C3 and C4 ("extras") sit under them and
+// Paper cassettes. A4 and A3 are always visible; A2 and A1 ("extras") sit under them and
 // are toggled by the Cassettes button, which lifts the whole `stack` by SHIFT to make room.
-// C1 is a sliding drawer holding A4 paper; clicking it toggles it open (see ui/picking.js).
+// A4 is a sliding drawer holding A4 paper; clicking it toggles it open (see ui/picking.js).
 // setPaperCount(n) shows n sheets (0..MAX_PAPER), removing them one by one when lowered.
 // Exposes: Cetak.parts.cassettes = { extras, SHIFT, drawer, toggleTray, setPaperCount, MAX_PAPER, update }
 (function (C) {
@@ -12,7 +12,7 @@
   const LABEL_COLOR = '#7b8088';
 
   // Fixed cassette front, drawn straight onto the body.
-  // `parent` lets C1 build the same front inside its sliding drawer.
+  // `parent` lets A4 build the same front inside its sliding drawer.
   function cassette(y0, y1, name, solid, parent) {
     if (solid) rect(366.4, y0, 633.6, y1, ZF, D - 0.4, door);
     rect(366.3, y0 - 1, 633.7, y0 + 1, ZF + 0.15, 1, seam, parent);
@@ -21,9 +21,9 @@
     slab(476, cy - 6, 524, cy + 6, ZF + 0.7, 0.3, handleIn, [1.6, 1.6, 1.6, 1.6], parent);
     label(name, 395, cy, 2.4, 1.6, ZF + 0.2, LABEL_COLOR, 'normal', parent);
   }
-  cassette(465, 525, 'C2', true);
+  cassette(465, 525, 'A3', true);
 
-  // ---- C1: a drawer that slides out toward the viewer, with a tray of A4 paper inside ----
+  // ---- A4: a drawer that slides out toward the viewer, with a tray of A4 paper inside ----
   const TRAY_OPEN_DISTANCE = 46;                       // how far the drawer slides out (world units)
   const TRAY_SLIDE_SPEED = 8;                          // higher = snappier
   const SHEETS = 20;                                   // sheets in a full stack
@@ -32,7 +32,7 @@
   // Tray geometry, all in world units. The drawer front is 2.5 thick; the tray sits behind it.
   const FRONT_T = 2.5;
   const TRAY = { w: 62, d: 56, wallH: 8.5, wallT: 0.6 };
-  const trayFloorY = Y(465) + 1.2;                     // just above the bottom of the C1 opening
+  const trayFloorY = Y(465) + 1.2;                     // just above the bottom of the A4 opening
   const trayBackZ = ZF - FRONT_T - TRAY.d;
   const trayCenterZ = ZF - FRONT_T - TRAY.d / 2;
 
@@ -49,13 +49,13 @@
   const drawer = new THREE.Group();
   stack.add(drawer);
 
-  // The body at C1 height stays door-coloured (it is also the printer's side wall). The dark cavity is a thin
+  // The body at A4 height stays door-coloured (it is also the printer's side wall). The dark cavity is a thin
   // panel on the front, shown only while the drawer is out: closed, it sits almost flush behind the drawer front
   // and would z-fight through it.
   rect(366.4, 415, 633.6, 465, ZF, D - 0.4, door);
   const cavity = rect(372, 418, 628, 463, ZF + 0.03, 0.03, black2);
   cavity.visible = false;
-  cassette(415, 465, 'C1', false, drawer);
+  cassette(415, 465, 'A4', false, drawer);
   // Narrower than the body so their side faces never share a plane (that caused z-fighting).
   rect(367.4, 415.5, 632.6, 464.5, ZF + 0.1, FRONT_T, door, drawer);
 
@@ -158,8 +158,8 @@
   }
 
   const baseY = Y(525);
-  extraCassette(baseY, 'C4');
-  extraCassette(baseY + drawerH, 'C3');
+  extraCassette(baseY, 'A1');
+  extraCassette(baseY + drawerH, 'A2');
 
   C.parts.cassettes = { extras, SHIFT: 2 * drawerH, drawer, toggleTray, setPaperCount, MAX_PAPER: SHEETS, update };
 })(window.Cetak);

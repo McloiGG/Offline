@@ -1,0 +1,64 @@
+/* Blackout + credits: a black screen that fades in, with the credits rolling up from the bottom. */
+
+#blackout {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity 0.7s ease;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+}
+#blackout.on { opacity: 1; pointer-events: auto; }
+
+#blackout .roll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;                      /* starts just below the screen */
+  display: none;
+}
+#blackout.credits .roll {
+  display: block;
+  animation: credits-roll 22s linear forwards;
+}
+@keyframes credits-roll {
+  to { transform: translateY(calc(-100% - 100vh)); }
+}
+
+#blackout .title { font-size: 44px; font-weight: 900; letter-spacing: 0.08em; }
+#blackout .role { font-size: 20px; color: #9aa0a8; margin: 18px 0 8px; }
+#blackout .name { font-size: 30px; font-weight: 700; margin: 8px 0; }
+#blackout .small { font-size: 15px; color: #6b7079; margin-top: 8px; }
+#blackout .gap { height: 70px; }
+
+#blackout .taunt {
+  position: absolute;
+  right: 6vw;
+  top: 50%;
+  transform: translateY(-50%) rotate(-12deg);
+  color: #d10000;
+  font-family: Creepster, Chiller, 'Nosifer', 'Ravie', Impact, fantasy;
+  font-size: 40px;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 8px #ff0000, 0 0 22px #7a0000, 2px 3px 0 #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+#blackout .taunt.show { opacity: 1; }
+
+#blackout button {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+#blackout.done button { opacity: 0.85; pointer-events: auto; }

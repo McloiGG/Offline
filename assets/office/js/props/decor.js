@@ -235,14 +235,12 @@
           c.fillRect(0, 0, w, h);
           c.font = 'bold 34px Arial';
           c.fillStyle = '#d9453b';
-          c.fillText('PRINTER STATUS:', 24, 52);
+          c.fillText('FIX THE PRINTER!', 24, 52);
           c.fillStyle = '#222';
-          c.fillText('BROKEN (again)', 24, 98);
+          c.fillText('On Duty:', 24, 98);
           c.font = '26px Arial';
           c.fillStyle = '#3f6fb5';
-          c.fillText('- tried turning it off & on', 24, 160);
-          c.fillText('- tried yelling at it', 24, 200);
-          c.fillText('- tried crying', 24, 240);
+          ['- CLOWN', '- REX', '- MARCUS', '- MAZ'].forEach((name, i) => c.fillText(name, 24, 150 + i * 40));
         })
       })
     );
