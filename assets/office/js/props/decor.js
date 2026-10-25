@@ -241,6 +241,17 @@
           c.font = '26px Arial';
           c.fillStyle = '#3f6fb5';
           ['- CLOWN', '- REX', '- MARCUS', '- MAZ'].forEach((name, i) => c.fillText(name, 24, 150 + i * 40));
+          c.save();
+          c.translate(340, 232);
+          c.rotate(-0.08);
+          c.font = '16px Arial';
+          [['name:', 'Corbrat'], ['pass:', '241026']].forEach(([label, value], i) => {
+            c.fillStyle = '#111';
+            c.fillText(label, 0, i * 24);
+            c.fillStyle = '#3f6fb5';
+            c.fillText(value, c.measureText(label + ' ').width, i * 24);
+          });
+          c.restore();
         })
       })
     );

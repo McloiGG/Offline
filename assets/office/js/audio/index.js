@@ -22,5 +22,20 @@
   power.onChange(plugged => audio.play(plugged ? 'plugIn' : 'unplug'));
   power.onLand(() => audio.play('plugDrop'));
 
+  // Offline state: its own repeating sound (not the warning beeps) while the screen is lit, plus the touchscreen sounds.
+  const OFFLINE_EVERY = 3000;
+  let offlineTimer = 0;
+  const offlineSound = () => { if (C.parts.display.isOn()) audio.play('offline'); };
+  C.parts.wifi.on(type => {
+    if (type === 'offline') {
+      offlineSound();
+      offlineTimer = setInterval(offlineSound, OFFLINE_EVERY);
+    } else if (type === 'online') {
+      clearInterval(offlineTimer);
+      offlineTimer = 0;
+    } else if (type === 'connected') audio.play('connected');
+    else audio.play(type === 'wrong' ? 'wrong' : 'tap');
+  });
+
   C.office.updaters.push(t => inkPanel.update(t));
 })(window.Cetak);

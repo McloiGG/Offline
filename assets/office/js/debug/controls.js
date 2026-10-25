@@ -81,5 +81,12 @@
   // Switching the printer off resolves the overheat (the fan sound, alarm and error stop).
   C.ui.powerSwitch.onChange(on => { if (!on) setOverheat(false); });
 
+  // Offline: the screen shows no network until the player connects to Wi-Fi (connecting also turns the toggle off).
+  const offlineBtn = byId('sound-offline');
+  offlineBtn.onclick = () => C.parts.wifi.setOffline(!C.parts.wifi.isOffline());
+  C.parts.wifi.on(type => {
+    if (type === 'offline' || type === 'online') setToggle(offlineBtn, 'Offline', type === 'offline');
+  });
+
   byId('sound-volume').oninput = e => audio.setVolume(Number(e.target.value));
 })(window.Cetak);
