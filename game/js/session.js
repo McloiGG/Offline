@@ -4,16 +4,17 @@
   const $ = id => document.getElementById(id);
   const menu = $('menu'), pauseEl = $('pause'), back = $('btn-back'), howto = $('howto-card');
   const PRINTER_AT = [960, 430];                       // the OFFLINE monitor in the menu art
-  const hold = { card: false, sdk: false };
+  const hold = { card: false, sdk: false, credits: false };
   let muted = false, busy = false, inGame = false;
   const timers = [];
   const later = (ms, fn) => timers.push(setTimeout(fn, ms));
   const clearLater = () => { while (timers.length) clearTimeout(timers.pop()); };
 
   function applyAudio() {
-    O.paused = hold.card || hold.sdk;
-    E.setVolume(muted || O.paused ? 0 : 0.6);
-    if (E.ctx) { if (O.paused) E.ctx.suspend(); else if (E.ctx.state === 'suspended') E.ctx.resume(); }
+    const silent = hold.card || hold.sdk;              // the credits freeze the clock but keep the sound (the sparks)
+    O.paused = silent || hold.credits;
+    E.setVolume(muted || silent ? 0 : 0.6);
+    if (E.ctx) { if (silent) E.ctx.suspend(); else if (E.ctx.state === 'suspended') E.ctx.resume(); }
     $('p-mute').textContent = 'SOUND: ' + (muted ? 'OFF' : 'ON');
   }
   function setCard(on) {
@@ -76,13 +77,20 @@
   $('p-restart').onclick = restart;
   $('p-menu').onclick = toMenu;
   addEventListener('keydown', e => {
-    if (e.key !== 'Escape' || !inGame) return;
+    if (e.key !== 'Escape') return;
     e.stopPropagation();                               // DANN's own Esc (fly to the 3/4 view) must not run first
+    if (!inGame) { howto.hidden = true; return; }
+    if (hold.credits) return;
     if (hold.card) setCard(false);
     else if (P.zoomed() && G.phase !== 'ending') P.out();
     else setCard(true);
   }, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden && inGame && G.playing()) setCard(true); });
+
+  // DANN's credits easter egg (five quick unplugs) blacks the room out: hold the game clock while it covers the screen.
+  const blackout = $('blackout');
+  if (blackout) new MutationObserver(() => { hold.credits = blackout.classList.contains('on'); applyAudio(); })
+    .observe(blackout, { attributes: true, attributeFilter: ['class'] });
 
   // the Back button follows the camera
   C.office.updaters.push(() => { back.hidden = !(inGame && P.zoomed()); });
