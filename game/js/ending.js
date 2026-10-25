@@ -19,6 +19,7 @@
   O.endingReset = () => {
     while (timers.length) clearTimeout(timers.pop());
     pageHit.visible = false;
+    C.scene.stack.children.forEach(m => { if (m.isMesh && Array.isArray(m.material) && m.material.length === 6 && m.userData.slot !== undefined) { m.visible = false; m.userData.active = false; } });
     endEl.hidden = true; pageView.hidden = true; rating.hidden = true; black.hidden = true; black.innerHTML = '';
   };
 
@@ -31,7 +32,7 @@
     C.ui.views.goTo('print');
     blankSheets();
     C.anim.printing.start();                           // the sound and a single sheet
-    later(1600, () => C.anim.printing.stop());
+    later(2900, () => C.anim.printing.stop());         // before the model spawns a second sheet (every 3.0 s); the first one still lands
   });
   G.on('pageLanded', () => {
     pageHit.visible = true;

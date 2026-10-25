@@ -22,6 +22,7 @@
       hints: { good: "You're looking at screens when the answer is behind everything.", bad: 'Restart it. Three times if needed.' } }
   ];
   const BASE = 1000, P_WRONG = 100, P_HINT = 200, P_EXPIRE = 150, P_EXHAUST = 500, START_QUEUE = 47, RIDDLE_MS = 4500;
+  const PAGE_MS = 3600;                                // the printer model's sheet: 2.2 s sucked in + 0.9 s slide + 0.4 s drop onto the tray
   const REACTIONS = ['nod', 'hm', 'eye', 'notebook'];
 
   function Game() {
@@ -161,8 +162,8 @@
   G.ending = function () {
     this.phase = 'ending'; this.pageClicked = false;
     this.schedule(1200, () => this.emit('print'));
-    this.schedule(3200, () => { this.pageReady = true; this.emit('pageLanded'); this.emit('perfect'); });
-    this.schedule(20000, () => this.pageClick(), 'pageauto');
+    this.schedule(1200 + PAGE_MS, () => { this.pageReady = true; this.emit('pageLanded'); this.emit('perfect'); });
+    this.schedule(22000, () => this.pageClick(), 'pageauto');
   };
 
   G.pageClick = function () {
