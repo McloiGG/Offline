@@ -77,10 +77,11 @@
   $('p-menu').onclick = toMenu;
   addEventListener('keydown', e => {
     if (e.key !== 'Escape' || !inGame) return;
+    e.stopPropagation();                               // DANN's own Esc (fly to the 3/4 view) must not run first
     if (hold.card) setCard(false);
     else if (P.zoomed() && G.phase !== 'ending') P.out();
     else setCard(true);
-  });
+  }, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden && inGame && G.playing()) setCard(true); });
 
   // the Back button follows the camera
