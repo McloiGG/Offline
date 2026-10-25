@@ -1,6 +1,6 @@
 <#
 Builds offline-build.zip for the GamePix / Xsolla upload: index.html at the zip root, forward-slash entry names.
-Only the whitelist below is packaged; everything else in the repo (Godot leftovers, .git, prototype/, store/, tools/ ...) stays out.
+Only the whitelist below is packaged; everything else in the repo (.git, store/, tools/, README.md ...) stays out.
 
   powershell -ExecutionPolicy Bypass -File tools\make-zip.ps1             # build offline-build.zip in the repo root
   powershell -ExecutionPolicy Bypass -File tools\make-zip.ps1 -DryRun     # list what would ship and run the checks, write nothing

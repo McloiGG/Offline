@@ -1,0 +1,29 @@
+# Claude Code and browser-automation scratch
+.claude/
+.playwright-mcp/
+
+# Build output
+*.zip
+build/
+node_modules/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Leftovers from the old Godot project (anchored to the repo root)
+.godot/
+/android/
+/project.godot
+/main.tscn
+/export_presets.cfg
+/icon.svg*
+*.import
+/scripts/
+/data/
+
+# Printer source files that are never shipped
+/assets/printer/tools/
+/assets/printer/printer.glb
+/assets/printer/printer_*.png
