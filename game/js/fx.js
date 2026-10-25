@@ -1,7 +1,8 @@
 // Printer condition: keeps the 3D printer, the touchscreen and the alarm sounds in step with Offline.world.
 (function (O) {
   const C = window.Cetak, W = O.world, S = O.screen;
-  const { cassettes, inkPanel, display } = C.parts;
+  const { cassettes, inkPanel, display, wifi } = C.parts;
+  const sw = C.ui.powerSwitch;
   const { airflow } = C.anim;
   const audio = C.office.audio;
   const { Y, ZF } = C.config;
@@ -47,7 +48,7 @@
     tween(0.8, k => F.setInk(i, from + (1 - from) * k));
   };
   F.setPaper = n => { W.paper = n; cassettes.setPaperCount(n); };
-  F.setNet = on => { W.net = on; S.net = on; S.redraw(); };
+  F.setNet = on => { W.net = on; S.net = on; wifi.setOffline(!on); if (on) S.redraw(); else S.go('net'); };
   F.setJam = on => { jam.visible = on; jamHit.visible = on; jam.scale.setScalar(1); jam.position.y = 0; };
   let trayOut = false;
   F.trayOpen = () => trayOut;
@@ -57,6 +58,7 @@
 
   // The condition of each state. apply() starts it, clear() ends it.
   F.apply = key => {
+    F.powerOn();                                       // every fault starts with the printer switched on
     W.fault = key;
     S.setFault(key === 'cable' ? null : key);
     if (key === 'jam') { F.setPaper(12); F.setJam(true); audio.setPaperJam(true); W.job = 0; }
@@ -65,7 +67,7 @@
       F.setInk(F.emptyTank, 0); audio.setInkWarning(true); W.job = 1;
     }
     if (key === 'offline') { F.setNet(false); W.job = 2; }
-    if (key === 'heat') { heatGoal = 1; airflow.heat(); audio.startOverheat(); W.job = 4; }
+    if (key === 'heat') { heatGoal = 1; airflow.heat(audio.overheatAlarm); audio.startOverheat(); W.job = 4; }
     if (key === 'cable') { S.freeze(true); W.job = 3; }
   };
   F.clear = () => {
@@ -90,12 +92,17 @@
     F.closeTray();
     const pw = C.parts.power;
     if (!pw.isPlugged() || pw.getPull() > 0) { F.quietUntil = performance.now() + 600; pw.setPull(0); pw.release(); }
-    display.setPower(true); inkPanel.setPower(true);
+    F.powerOn();
+  };
+  // Back on again (the power key may have left it off). DANN's power switch re-lights the screens.
+  F.powerOn = () => {
+    if (!sw.isOn()) { F.quietSwitch = true; sw.toggle(); F.quietSwitch = false; }
+    const lit = C.parts.power.isPlugged() && sw.isOn();
+    display.setPower(lit); inkPanel.setPower(lit);
   };
 
-  // The printer goes dark when the plug is out, and comes back with a boot screen.
+  // The printer goes dark when the plug is out (DANN's power switch handles the screens), and comes back with a boot screen.
   C.parts.power.onChange(plugged => {
-    display.setPower(plugged); inkPanel.setPower(plugged);
-    if (plugged) S.boot(2700, () => { if (O.game.playing() && O.game.state().key !== 'cable') S.flash('Printer ready', 'ok', 1100); });
+    if (plugged && sw.isOn()) S.boot(2700, () => { if (O.game.playing() && O.game.state().key !== 'cable') S.flash('Printer ready', 'ok', 1100); });
   });
 })(window.Offline);

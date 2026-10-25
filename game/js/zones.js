@@ -66,6 +66,10 @@
     else H.toast('The fans spin freely. Nothing wrong with them.', '', 2200);
   };
 
+  // ---- the power key: the printer's own off switch (the way out of State 4; a wrong guess anywhere else) ----
+  d.power.click = () => { X.blip(); HD.flash('press', 300); C.ui.powerSwitch.toggle(); };
+  C.office.updaters.push(() => C.parts.powerButton.setHover(tipName === 'power' && P.view() === 's3' && !O.paused));
+
   // ---- the printer's power inlet ----
   d.port.click = () => { X.blip(); H.toast(C.parts.power.isPlugged() ? 'The cable is seated.' : 'No cable. No power.', '', 1800); };
 
@@ -75,7 +79,7 @@
   P.onDrag = on => { dragging = on; if (on) tip.hidden = true; HD.rest(on ? 'pull-cable' : 'idle'); if (on) X.blip(); };
 
   // ---- a name tag on whatever the pointer is over, so the parts are discoverable ----
-  const TAGS = { tray: 'Paper tray', ink: 'Ink panel', screen: 'Touchscreen', vent: 'Fans', port: 'Power inlet', plug: 'Power plug', page: 'The page' };
+  const TAGS = { tray: 'Paper tray', ink: 'Ink panel', screen: 'Touchscreen', vent: 'Fans', port: 'Power inlet', plug: 'Power plug', power: 'Power key', page: 'The page' };
   const tip = document.createElement('div');
   tip.id = 'tip'; tip.hidden = true; document.body.appendChild(tip);
   const dom = C.scene.renderer.domElement;

@@ -28,6 +28,11 @@
   S.freeze = on => { S.frozen = on; S.dirty = true; };
   const sp = disp.setPower;
   disp.setPower = on => { S.powered = on; sp(on); S.dirty = true; };
+  // DANN's offline / Wi-Fi screens paint on a canvas of the same size: take his painter and draw it on ours instead.
+  // The Network page draws it (see pages.js), so the Home button and the status bar stay reachable while it is up.
+  S.custom = null;
+  disp.setScreen = painter => { S.custom = painter; S.dirty = true; };
+  const wifiUp = () => !!S.custom && S.page === 'net';
 
   function text(s, x, y, size, color, align, weight) {
     g.fillStyle = color; g.font = (weight || 'bold') + ' ' + size + 'px Arial'; g.textAlign = align || 'left'; g.textBaseline = 'middle';
@@ -136,7 +141,7 @@
     if (S.overlay) { live = true; S.overlay.left -= dt; if (S.overlay.left <= 0) S.overlay = null; }
     if (S.booting) { live = true; S.booting.t += dt; if (S.booting.t >= S.booting.len) { const f = S.booting.then; S.booting = null; if (f) f(); } }
     if (S.diag) { live = true; S.diag.t += dt; if (S.diag.t >= S.diag.len) { const f = S.diag; S.diag = null; S.onAction('diag-done', f); } }
-    if (S.page === 'diag' || S.page === 'job') live = true;
+    if (S.page === 'diag' || S.page === 'job' || wifiUp()) live = true;
     if (live || S.dirty) { S.dirty = false; render(); }
   };
 
@@ -155,6 +160,7 @@
     const p = { x: hit.uv.x * W, y: (1 - hit.uv.y) * H };
     const b = S.hot.find(h => inside(h, p));
     if (b) { S.onPress(); b.fn(); S.dirty = true; }
+    else if (wifiUp()) C.parts.wifi.tap(p.x, p.y);
   };
   addEventListener('pointermove', e => {
     if (!O.pick || !O.pick.enabled || O.pick.view() !== 's3' || S.locked()) { if (S.hover !== -1) { S.hover = -1; S.dirty = true; } return; }

@@ -37,6 +37,7 @@
   register('vent', 's4', [mk(6, 24, 36, 35.5, 64, -6)]);
   register('port', 's5', [mk(16, 11, 3, 0, 13, -D / 2 - 1.2)]);
   register('plug', 's5', [power.hit]);
+  register('power', 's3', [C.parts.powerButton.hit]);   // the key on the screen's bezel; in front of the glass, so it is hit first
 
   function aim(e) {
     const r = dom.getBoundingClientRect();

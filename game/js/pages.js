@@ -102,9 +102,10 @@
   });
 
   S.addPage('net', 'Network', () => {
+    if (S.custom) { S.custom(S.g, S.W, S.H, S.t); D.homeBtn(); return; }   // DANN's "No network" screen and Wi-Fi form
     D.card('Wi-Fi');
     D.wifi(112, 164, W.net);
-    D.text('OFFICE-WIFI-5G', 170, 176, 36, '#2b3440');
+    D.text('Corbrat', 170, 176, 36, '#2b3440');
     D.text(W.net ? 'Connected' : 'Not connected', 170, 220, 26, W.net ? '#2fb24a' : '#d9473a');
     D.button(76, 282, 280, 64, 'Reconnect', () => S.onAction('reconnect'), { color: '#2f80ed', size: 30 });
     D.homeBtn();

@@ -5,7 +5,8 @@
   const PROGRESS = [0.5, 0.35, 0.8, 0.9, 0.99];
   const WRONG = {
     tray: 'The tray was fine', restart: 'Restarting fixed nothing', ink: 'That cartridge is fine', cable: 'Power-cycling did nothing',
-    pause: 'Pausing was not the answer', diagnostic: 'The diagnostic found nothing', vent: 'Poking the fan helps nothing'
+    pause: 'Pausing was not the answer', diagnostic: 'The diagnostic found nothing', vent: 'Poking the fan helps nothing',
+    poweroff: 'Switching it off fixed nothing', wifi: 'Wrong Wi-Fi details'
   };
   const AGAIN = ['It is still broken.', 'Same fault. Still ticking.', 'The fault came straight back.'];
 
@@ -68,6 +69,7 @@
     CW.expr('nod', 2200); S.go('home');
     if (G.stateIndex < 4) S.flash('Printer ready', 'ok', 2200);
     if (O.pick.zoomed()) O.pick.out();
+    if (!C.ui.powerSwitch.isOn()) setTimeout(() => { if (!G.playing()) { F.powerOn(); S.boot(1500, null); } }, 2400);   // cooled down: it comes back on by itself
   });
 
   // ---- the touchscreen's own buttons ----
@@ -82,6 +84,27 @@
       if (!playing || W.net) S.flash('Already connected', 'ok', 1400); else G.act('wifi');
     } else if (name === 'diag-done') { S.flash('Diagnostic could not finish', 'bad', 1900); S.go('help'); }
   };
+
+  // DANN's Wi-Fi form: a wrong name or password costs points; a successful connect (after its 3 s spinner) fixes State 3.
+  let joined = false;
+  const finishJoin = () => {
+    if (!joined) return;
+    joined = false;
+    if (G.playing() && G.state().key === 'offline') G.act('wifi');
+  };
+  C.parts.wifi.on(type => {
+    if (type === 'wrong') G.mistake('wifi');
+    else if (type === 'connected') { joined = true; setTimeout(finishJoin, 900); }   // let its "Connected" screen show first
+    else if (type === 'online') finishJoin();                                        // a slow frame can end that screen early
+    else if (type === 'offline') joined = false;
+  });
+
+  // The printer's own power key: the answer to State 4, a wrong guess anywhere else. It never ejects the zoom.
+  C.ui.powerSwitch.onChange(on => {
+    if (F.quietSwitch) return;
+    if (on) { S.boot(1800, null); H.toast('Printer switched on', 'good', 1400); return; }
+    if (G.playing()) G.act('poweroff'); else H.toast('Printer switched off', '', 1400);
+  });
 
   document.getElementById('coworker').addEventListener('click', () => { X.blip(); G.coworkerClick(); });
 

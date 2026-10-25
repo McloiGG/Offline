@@ -13,8 +13,8 @@
       hints: { good: 'It runs on color. One of them gave up.', bad: "It's the tray again. Obviously." } },
     { n: 3, key: 'offline', name: 'Offline', timer: 45, riddle: R1, correct: 'wifi', fakeDelay: 3000, diagMs: 6000, queueAfter: 8,
       comments: ["you've heard this one before.", "you've heard this one before."],
-      hints: { good: 'It knows the words but forgot where to send them.', bad: 'Run a diagnostic. It is thorough.' } },
-    { n: 4, key: 'heat', name: 'Overheating', timer: 40, riddle: 'Too much. Too long. Too loud. Quiet everything.', correct: 'pause', transitionMs: 5000, fakeDelay: 3000, diagMs: 9000, queueAfter: 1,
+      hints: { good: 'It wants a password. Somebody wrote it on the whiteboard.', bad: 'Run a diagnostic. It is thorough.' } },
+    { n: 4, key: 'heat', name: 'Overheating', timer: 40, riddle: 'Too much. Too long. Too loud. Quiet everything.', correct: 'pause', alt: ['poweroff'], transitionMs: 5000, fakeDelay: 3000, diagMs: 9000, queueAfter: 1,
       comments: ['Some things are better left running.', "I don't touch it anymore."],
       hints: { good: 'Stop trying to fix it. Just stop it.', bad: 'Unplug it. Hard reset.' } },
     { n: 5, key: 'cable', name: 'Plug In, Plug Out', timer: 0, riddle: 'You already have everything you need.', correct: null, fakeDelay: 3000, diagMs: 5000, queueAfter: 0,
@@ -95,8 +95,9 @@
     if (!this.playing()) return false;
     const s = this.state();
     this.emit('actionClick', { id });
-    if (ok !== false && s.correct === id) { this.solve(); return true; }
+    if (ok !== false && (s.correct === id || (s.alt && s.alt.indexOf(id) >= 0))) { this.solve(); return true; }
     if (id === 'wifi') return false;
+    if (id === 'poweroff') { this.mistake(id); return false; }
     this.wrongAction(id, s);
     return false;
   };
@@ -117,6 +118,14 @@
     }
     if (this.wrong >= 3 && !this.hintUsed) this.deliverHint();
     if (i !== 4 && this.usedCount >= ACTIONS.length) this.exhaust();
+  };
+
+  // A plain mistake with no fake recovery (e.g. wrong Wi-Fi details): costs points and counts towards the hint.
+  G.mistake = function (id) {
+    if (!this.playing()) return;
+    this.wrong++; this.penalties[this.stateIndex] += P_WRONG;
+    this.emit('wrong', { id, count: this.wrong, penalty: P_WRONG }); this.emit('score');
+    if (this.wrong >= 3 && !this.hintUsed) this.deliverHint();
   };
 
   G.exhaust = function () {
