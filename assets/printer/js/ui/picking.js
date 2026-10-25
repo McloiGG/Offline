@@ -60,6 +60,11 @@
   }
   const overPower = () => raycaster.intersectObject(powerHit, false).length > 0;
   const overPlug = () => C.state.currentView === 's5' && raycaster.intersectObject(power.hit, false).length > 0;
+  // Where the ray meets the touchscreen, in the 1000x560 canvas coordinates of its image (null if it misses).
+  const screenPoint = () => {
+    const h = raycaster.intersectObject(C.parts.display.face, false)[0];
+    return h ? { x: h.uv.x * 1000, y: (1 - h.uv.y) * 560 } : null;
+  };
   const planeZ = () => (raycaster.ray.intersectPlane(plane, planePoint) ? planePoint.z : null);
 
   function endDrag() {
@@ -87,7 +92,9 @@
     aim(e);
     const onKey = overPower();
     C.parts.powerButton.setHover(onKey);
-    renderer.domElement.style.cursor = overPlug() ? 'grab' : onKey ? 'pointer' : '';
+    const p = C.state.currentView === 's3' ? screenPoint() : null;
+    const onScreen = !!p && C.parts.wifi.hit(p.x, p.y);
+    renderer.domElement.style.cursor = overPlug() ? 'grab' : onKey || onScreen ? 'pointer' : '';
   });
 
   addEventListener('pointermove', e => {
@@ -104,6 +111,9 @@
     if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
 
     aim(e);
+    // Tapping a button on the touchscreen (only once zoomed in on it).
+    const tapAt = C.state.currentView === 's3' && C.parts.wifi.isOffline() ? screenPoint() : null;
+    if (tapAt && !raycaster.intersectObject(powerHit, false).length) { C.parts.wifi.tap(tapAt.x, tapAt.y); return; }
     const hit = raycaster.intersectObject(powerHit, false)[0] || raycaster.intersectObjects(zones, false)[0];
     if (!hit) return;
 
