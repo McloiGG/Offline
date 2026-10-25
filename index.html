@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>OFFLINE</title>
+<link rel="icon" type="image/png" href="game/img/icon.png">
+<link rel="stylesheet" href="assets/printer/css/styles.css">
+<link rel="stylesheet" href="assets/office/css/debug.css">
+<link rel="stylesheet" href="assets/office/css/credits.css">
+<link rel="stylesheet" href="game/css/game.css">
+<link rel="stylesheet" href="game/css/ui.css">
+</head>
+<body>
+<div id="plugmsg"></div>
+
+<!-- DANN's debug controller. Hidden in the shipped game (add ?debug to the URL to show it). The printer scripts look these ids up. -->
+<div id="debug">
+  <button id="debug-tab" aria-controls="debug-panel" aria-expanded="false" aria-label="Open debug controller">&lsaquo;</button>
+  <aside id="debug-panel">
+    <h2>Debug controller</h2>
+    <p id="info">The office</p>
+    <h3>Camera</h3>
+    <div class="grid">
+      <button data-view="office" class="on">Office</button>
+      <button data-view="front">Printer front</button>
+      <button data-view="three">Printer 3/4</button>
+      <button data-view="display">Display</button>
+      <button data-view="ink">Ink display</button>
+      <button data-view="vent">Ventilation</button>
+    </div>
+    <h3>Game states</h3>
+    <div class="list">
+      <button data-view="s1">1 Paper jam</button>
+      <button data-view="s2">2 Ink low</button>
+      <button data-view="s3">3 Offline</button>
+      <button data-view="s4">4 Overheating</button>
+      <button data-view="s5">5 Plug</button>
+    </div>
+    <h3>Paper tray</h3>
+    <label class="field">Paper count (0-20)
+      <input id="paper-count" type="number" min="0" max="20" step="1" value="20">
+    </label>
+    <h3>Ink levels (%)</h3>
+    <div class="grid">
+      <label class="field">BK <input class="ink-level" type="number" min="0" max="100" step="1" value="85"></label>
+      <label class="field">Y <input class="ink-level" type="number" min="0" max="100" step="1" value="70"></label>
+      <label class="field">M <input class="ink-level" type="number" min="0" max="100" step="1" value="55"></label>
+      <label class="field">C <input class="ink-level" type="number" min="0" max="100" step="1" value="90"></label>
+    </div>
+    <h3>Sound effects</h3>
+    <div class="list">
+      <button data-sound="warning">Warning</button>
+      <button id="sound-ink">Ink warning: off</button>
+      <button data-sound="complete">Completed</button>
+      <button data-sound="trayOpen">Paper tray opening</button>
+      <button data-sound="trayClose">Paper tray closing</button>
+      <button data-sound="unplug">Plug pulled out</button>
+      <button data-sound="plugIn">Plug put back in</button>
+      <button data-sound="plugDrop">Plug dropped</button>
+      <button id="sound-print">Print: off</button>
+      <button id="sound-jam">Paper jam: off</button>
+      <button id="sound-overheat">Overheat: off</button>
+      <button id="sound-offline">Offline: off</button>
+      <label class="field">Volume <input id="sound-volume" type="range" min="0" max="1" step="0.05" value="0.6"></label>
+    </div>
+    <h3>Toggles</h3>
+    <div class="list">
+      <button id="spin">Auto-rotate: off</button>
+      <button id="cass">Cassettes: 2</button>
+    </div>
+    <p class="hint">Drag to rotate, scroll to zoom, right-drag to pan. Esc closes this panel.</p>
+  </aside>
+</div>
+
+<!-- ============ game UI (above the 3D canvas) ============ -->
+<div id="game-ui" class="layer" hidden>
+  <div id="hud">
+    <button id="btn-menu" class="chip btn" title="Menu (Esc)">&#9776; MENU</button>
+    <div class="chip" id="chip-score"><small>SCORE</small><b id="score">0</b></div>
+    <div class="chip" id="chip-queue"><small>QUEUE</small><b id="queue">47</b></div>
+    <div class="chip" id="chip-time"><small>TIME</small><b id="timer">--</b></div>
+  </div>
+  <button id="btn-back" class="chip btn" hidden>&larr; BACK</button>
+  <div id="riddle" hidden></div>
+  <div id="coworker" title="Click the coworker"><canvas id="cw" width="512" height="512"></canvas><div id="bubble" hidden></div></div>
+  <div id="hands"></div>
+  <div id="toasts"></div>
+  <div id="flash"></div>
+</div>
+
+<div id="pause" class="layer" hidden>
+  <div class="card">
+    <h1>PAUSED</h1>
+    <button id="p-resume" class="big">RESUME</button>
+    <button id="p-zoomout" class="big">ZOOM OUT</button>
+    <button id="p-mute" class="big">SOUND: ON</button>
+    <button id="p-restart" class="big">RESTART GAME</button>
+    <button id="p-menu" class="big">MAIN MENU</button>
+  </div>
+</div>
+
+<div id="end" class="layer" hidden>
+  <div id="page-view" hidden><div class="sheet"></div><p>&hellip; perfect.</p></div>
+  <div id="rating" hidden>
+    <h1>EFFICIENCY RATING</h1>
+    <div class="big-num" id="rating-num">0</div>
+    <p id="rating-detail"></p>
+    <p class="small" id="rating-close"></p>
+  </div>
+</div>
+<div id="black" class="layer" hidden></div>
+
+<!-- ============ main menu (art by the team; scaled and centered by game/js/fit.js) ============ -->
+<div id="menu" class="layer">
+  <div id="stage">
+    <div id="queue-note">47 JOBS PENDING</div>
+    <button id="obj-howto" class="obj" aria-label="How to play"><img src="game/img/menu-howto.png" alt="How to play"></button>
+    <button id="obj-start" class="obj" aria-label="Start"><img src="game/img/menu-start.png" alt="Start"></button>
+    <button id="obj-quit" class="obj" aria-label="Quit"><img src="game/img/menu-quit.png" alt="Quit"></button>
+    <div id="howto-card" hidden><img src="game/img/howto-card.png" alt="The printer is broken. Fix it."></div>
+  </div>
+</div>
+
+<!-- GamePix SDK (pause / resume). The game works without it; every use is guarded. -->
+<script src="https://integration.gamepix.com/sdk/v3/gamepix.sdk.js"></script>
+<script src="game/js/boot.js"></script>
+
+<!-- three.js r128, vendored so the build runs offline / inside the GamePix iframe -->
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+
+<!-- The printer (DANN). ORDER MATTERS. ui/picking.js is replaced by game/js/picking.js -->
+<script src="assets/printer/js/config.js"></script>
+<script src="assets/printer/js/materials.js"></script>
+<script src="assets/printer/js/scene.js"></script>
+<script src="assets/printer/js/helpers.js"></script>
+<script src="assets/printer/js/parts/casters.js"></script>
+<script src="assets/printer/js/parts/cassettes.js"></script>
+<script src="assets/printer/js/parts/body.js"></script>
+<script src="assets/printer/js/parts/output-tray.js"></script>
+<script src="assets/printer/js/parts/scanner.js"></script>
+<script src="assets/printer/js/parts/display.js"></script>
+<script src="assets/printer/js/parts/wifi-screen.js"></script>
+<script src="assets/printer/js/parts/power-button.js"></script>
+<script src="assets/printer/js/parts/ink-panel.js"></script>
+<script src="assets/printer/js/parts/vents.js"></script>
+<script src="assets/printer/js/parts/power.js"></script>
+<script src="assets/printer/js/anim/printing.js"></script>
+<script src="assets/printer/js/anim/airflow.js"></script>
+<script src="assets/printer/js/ui/views.js"></script>
+<script src="assets/printer/js/ui/toast.js"></script>
+<script src="assets/printer/js/ui/power-switch.js"></script>
+<script src="assets/printer/js/ui/buttons.js"></script>
+
+<!-- The office (DANN) -->
+<script src="assets/office/js/config.js"></script>
+<script src="assets/office/js/materials.js"></script>
+<script src="assets/office/js/util.js"></script>
+<script src="assets/office/js/room.js"></script>
+<script src="assets/office/js/people/figure.js"></script>
+<script src="assets/office/js/props/furniture.js"></script>
+<script src="assets/office/js/props/decor.js"></script>
+<script src="assets/office/js/layout.js"></script>
+<script src="assets/office/js/people/walkers.js"></script>
+<script src="assets/office/js/people/chatters.js"></script>
+<script src="assets/office/js/main.js"></script>
+<script src="assets/printer/js/main.js"></script>
+<script src="assets/office/js/audio/engine.js"></script>
+<script src="assets/office/js/audio/sounds.js"></script>
+<script src="assets/office/js/audio/recordings.js"></script>
+<script src="assets/office/js/audio/alerts.js"></script>
+<script src="assets/office/js/audio/warnings.js"></script>
+<script src="assets/office/js/audio/printing.js"></script>
+<script src="assets/office/js/audio/overheat.js"></script>
+<script src="assets/office/js/audio/index.js"></script>
+<script src="assets/office/js/credits.js"></script>
+<script src="assets/office/js/start.js"></script>
+<script src="assets/office/js/debug/panel.js"></script>
+<script src="assets/office/js/debug/controls.js"></script>
+
+<!-- The game. ORDER MATTERS: each file builds on the ones above it. -->
+<script src="game/js/fit.js"></script>
+<script src="game/js/logic.js"></script>
+<script src="game/js/hands-art.js"></script>
+<script src="game/js/hands.js"></script>
+<script src="game/js/coworker.js"></script>
+<script src="game/js/picking.js"></script>
+<script src="game/js/screen.js"></script>
+<script src="game/js/pages.js"></script>
+<script src="game/js/sfx.js"></script>
+<script src="game/js/hud.js"></script>
+<script src="game/js/fx.js"></script>
+<script src="game/js/flow.js"></script>
+<script src="game/js/zones.js"></script>
+<script src="game/js/ending.js"></script>
+<script src="game/js/session.js"></script>
+</body>
+</html>
