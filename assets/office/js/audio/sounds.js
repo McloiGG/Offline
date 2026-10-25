@@ -1,5 +1,5 @@
 // The synthesised one-shot sound effects. Adds play(name) and playComplete() to Cetak.office.audio.
-//   names: warning, complete, unplug, plugIn, plugDrop, spark, switchOn, switchOff, trayOpen, trayClose
+//   names: warning, complete, unplug, plugIn, plugDrop, spark, switchOn, switchOff, offline, tap, wrong, connected, trayOpen, trayClose
 (function (C) {
   const { engine, audio } = C.office;
   const { tone, swish } = engine;
@@ -60,6 +60,25 @@
       thunk(0.005, 0.3);
       tone(990, 0.07, 0.09, 'triangle', 0.13);
       tone(520, 0.14, 0.22, 'triangle', 0.13, 260);
+    },
+    // Network lost: three falling blips and a soft low sweep. Deliberately unlike the square-wave warning beeps.
+    offline() {
+      [880, 660, 440].forEach((f, i) => tone(f, i * 0.16, 0.14, 'sine', 0.2, f * 0.8));
+      tone(300, 0.6, 0.9, 'triangle', 0.1, 150);
+    },
+    // Tapping a button on the touchscreen.
+    tap() {
+      tone(1800, 0, 0.03, 'square', 0.06);
+      tone(1200, 0.02, 0.05, 'triangle', 0.1);
+    },
+    // Wrong Wi-Fi details.
+    wrong() {
+      tone(220, 0, 0.18, 'sawtooth', 0.12);
+      tone(165, 0.2, 0.3, 'sawtooth', 0.12);
+    },
+    // Wi-Fi connected: a bright rising arpeggio.
+    connected() {
+      [660, 880, 1320].forEach((f, i) => tone(f, i * 0.1, 0.25, 'sine', 0.2));
     },
     // Drawer rolling out, then a soft thunk as it reaches the end.
     trayOpen() {

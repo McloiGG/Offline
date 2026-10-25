@@ -36,7 +36,8 @@
     g.fillText(message, w / 2, by + 125);
   }
 
-  function drawHomeScreen(g, w) {
+  // The dark bezel, the light screen area and the status bar. Shared by the home screen and the offline / Wi-Fi screens.
+  function drawFrame(g, w, status) {
     g.fillStyle = '#0a0a0c';
     roundRectPath(g, 0, 0, w, 560, 34);
     g.fill();
@@ -48,7 +49,6 @@
     g.fillStyle = bg;
     g.fillRect(sx, sy, sw, sh);
 
-    // status bar
     g.fillStyle = '#ffffff';
     g.fillRect(sx, sy, sw, 46);
     g.fillStyle = '#44505f';
@@ -57,7 +57,12 @@
     g.textAlign = 'left';
     g.fillText('Home', sx + 18, sy + 24);
     g.textAlign = 'right';
-    g.fillText('12:30   Ready', sx + sw - 18, sy + 24);
+    g.fillText(status, sx + sw - 18, sy + 24);
+  }
+
+  function drawHomeScreen(g, w) {
+    drawFrame(g, w, '12:30   Ready');
+    const sx = 26, sy = 24;
 
     // 5 x 2 icon grid
     ICONS.forEach(([name, color], i) => {
@@ -112,6 +117,7 @@
   group.add(bezel);
 
   const screenTex = canvasTex(1000, 560, drawHomeScreen);
+  const screenCtx = screenTex.image.getContext('2d');
   const face = new THREE.Mesh(
     new THREE.PlaneGeometry(width, height),
     new THREE.MeshBasicMaterial({ map: screenTex })
@@ -119,17 +125,43 @@
   face.position.z = 0.92;
   group.add(face);
 
+  // Alert box on the home screen, or a custom animated screen (offline / Wi-Fi) painted every frame.
+  let custom = null;          // (g, w, h, seconds) => void
+  let frame = 0;
+
+  function repaint(now) {
+    if (custom) custom(screenCtx, 1000, 560, now / 1000);
+    else drawHomeScreen(screenCtx, 1000);
+    screenTex.needsUpdate = true;
+  }
+
+  function loop(now) {
+    if (!custom) { frame = 0; return; }
+    repaint(now);
+    frame = requestAnimationFrame(loop);
+  }
+
+  let lit = true;
   // The texture is multiplied by the material colour, so a near-black colour switches the screen off.
-  group.setPower = on => face.material.color.setHex(on ? 0xffffff : 0x050506);
+  group.setPower = on => { lit = on; face.material.color.setHex(on ? 0xffffff : 0x050506); };
+  group.isOn = () => lit;
 
   // Shows `text` as an alert over the home screen; null goes back to the plain home screen.
   group.setMessage = text => {
     if (text === message) return;
     message = text;
-    drawHomeScreen(screenTex.image.getContext('2d'), 1000);
-    screenTex.needsUpdate = true;
+    if (!custom) repaint(performance.now());
   };
 
+  // Replaces the home screen with a painter that is redrawn every frame; null brings the home screen back.
+  group.setScreen = painter => {
+    custom = painter;
+    repaint(performance.now());
+    if (custom && !frame) frame = requestAnimationFrame(loop);
+  };
+
+  group.paintFrame = drawFrame;
+  group.face = face;
   group.size = { width, height };
   C.parts.display = group;
 })(window.Cetak);
